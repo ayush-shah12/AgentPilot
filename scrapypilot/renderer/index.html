@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ScrapyPilot Manager</title>
+</head>
+<body>
+  <h1>ScrapyPilot Manager</h1>
+  <button id="create-vm">Create New VM</button>
+  <div id="instances"></div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    let instanceCount = 0;
+
+    document.getElementById('create-vm').addEventListener('click', () => {
+      instanceCount++;
+      ipcRenderer.send('create-instance', instanceCount);
+
+      // Add instance to UI
+      const instanceDiv = document.createElement('div');
+      instanceDiv.innerText = `VM Instance ${instanceCount}`;
+      document.getElementById('instances').appendChild(instanceDiv);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VM Instance</title>
+</head>
+<body>
+  <h1>VM Instance</h1>
+  <input id="prompt" type="text" placeholder="Enter a prompt" />
+  <button id="run-task">Run</button>
+  <div id="output"></div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    document.getElementById('run-task').addEventListener('click', () => {
+      const prompt = document.getElementById('prompt').value;
+      // Send the prompt to the backend or process it locally
+      ipcRenderer.invoke('process-prompt', { prompt }).then((result) => {
+        document.getElementById('output').innerText = result;
+      });
+    });
+  </script>
+</body>
+</html>

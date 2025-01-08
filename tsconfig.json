@@ -7,11 +7,11 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "outDir": "./dist",
-      "rootDir": "./src",
+      "rootDir": "./scrapypilot",
       "resolveJsonModule": true
     },
     "include": [
-      "src/**/*.ts"
+      "scrapypilot/**/*.ts"
     ],
     "exclude": [
       "node_modules"
