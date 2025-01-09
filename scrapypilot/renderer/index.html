@@ -1,26 +1,33 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>ScrapyPilot Manager</title>
 </head>
+
 <body>
   <h1>ScrapyPilot Manager</h1>
   <button id="create-vm">Create New VM</button>
-  <div id="instances"></div>
+  <p id="instance-count">Current VM Instances: 0</p>
 
   <script>
+    // send event to main process to create a new VM instance
     const { ipcRenderer } = require('electron');
-    let instanceCount = 0;
-
     document.getElementById('create-vm').addEventListener('click', () => {
-      instanceCount++;
-      ipcRenderer.send('create-instance', instanceCount);
-
-      // Add instance to UI
-      const instanceDiv = document.createElement('div');
-      instanceDiv.innerText = `VM Instance ${instanceCount}`;
-      document.getElementById('instances').appendChild(instanceDiv);
+      ipcRenderer.send('create-vm-instance');
     });
+
+    // listen for event from main process to update the instance count (either increment or decrement)
+    ipcRenderer.on('update-instance-count', (event, count) => {
+      const instanceCountElement = document.getElementById('instance-count');
+      if (instanceCountElement) {
+        instanceCountElement.textContent = `Current VM Instances: ${count}`;
+      }
+    });
+
+
+
   </script>
 </body>
+
 </html>

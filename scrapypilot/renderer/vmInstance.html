@@ -1,24 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>VM Instance</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Instance</title>
+    <link rel="stylesheet" href="style.css"> <!-- Optional styling -->
 </head>
 <body>
-  <h1>VM Instance</h1>
-  <input id="prompt" type="text" placeholder="Enter a prompt" />
-  <button id="run-task">Run</button>
-  <div id="output"></div>
-
-  <script>
-    const { ipcRenderer } = require('electron');
-
-    document.getElementById('run-task').addEventListener('click', () => {
-      const prompt = document.getElementById('prompt').value;
-      // Send the prompt to the backend or process it locally
-      ipcRenderer.invoke('process-prompt', { prompt }).then((result) => {
-        document.getElementById('output').innerText = result;
-      });
-    });
-  </script>
+    <div id="vm-instance-container">
+        <h1>VM Instance</h1>
+        <button id="openManager">Open Manager Window</button>
+        <div id="vm-console">
+            <textarea id="log" rows="10" readonly></textarea>
+        </div>
+        <input type="text" id="prompt" placeholder="Enter prompt here">
+        <button id="sendPrompt">Send Prompt</button>
+    </div>
+    <script src="vmInstance.js"></script>
 </body>
 </html>

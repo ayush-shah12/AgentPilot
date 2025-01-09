@@ -12,7 +12,7 @@
     },
     "include": [
       "scrapypilot/**/*.ts"
-    ],
+, "scrapypilot/renderer/vmInstance.js"    ],
     "exclude": [
       "node_modules"
     ]
