@@ -42,7 +42,7 @@ function createManagerWindow() {
       contextIsolation: false,
     },
     autoHideMenuBar: true,
-    icon: 'scrapypilot/renderer/assets/image.png',
+    icon: 'scrapypilot/renderer/assets/image.jpg',
   });
 
   managerWindow.loadFile('scrapypilot/renderer/index.html');
