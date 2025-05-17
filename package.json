@@ -31,10 +31,14 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.33.1",
     "@electron/remote": "^2.1.2",
-    "axios": "^1.6.7",
+    "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "electron-store": "^8.2.0",
+    "playwright": "^1.49.1",
+    "scrapybara": "^2.5.1",
+    "ts-node": "^10.9.2",
     "uuid": "^11.1.0"
   },
   "build": {
