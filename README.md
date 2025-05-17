@@ -25,7 +25,7 @@ A desktop application for managing and controlling Scrapybara VM instances. Buil
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/scrapypilot.git
+git clone https://github.com/ayush-shah12/scrapypilot.git
 cd scrapypilot
 ```
 
