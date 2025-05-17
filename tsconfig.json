@@ -1,19 +1,28 @@
 {
     "compilerOptions": {
-      "target": "ES6",
-      "module": "CommonJS",
+      "target": "ES2020",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "outDir": "dist",
+      "rootDir": "src",
       "strict": true,
+      "noImplicitAny": true,
       "esModuleInterop": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
-      "outDir": "./dist",
-      "rootDir": "./scrapypilot",
-      "resolveJsonModule": true
+      "resolveJsonModule": true,
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["src/*"]
+      }
     },
     "include": [
-      "scrapypilot/**/*.ts"
-, "scrapypilot/renderer/vmInstance.js"    ],
+      "src/**/*"
+    ],
     "exclude": [
-      "node_modules"
+      "node_modules",
+      "dist",
+      "build"
     ]
   }

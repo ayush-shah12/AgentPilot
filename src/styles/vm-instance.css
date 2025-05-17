@@ -1,0 +1,98 @@
+.main-content {
+  flex-direction: column;
+}
+
+.vm-control-panel {
+  flex: 2;
+}
+
+.vm-status-panel {
+  flex: 1;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-item label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.info-item span {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.console-container {
+  background-color: #1a1a1a;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  height: 300px;
+  overflow-y: auto;
+}
+
+.console {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #ffffff;
+}
+
+.console-line {
+  margin-bottom: 0.25rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-line.command {
+  color: #4ade80;
+}
+
+.console-line.error {
+  color: #f87171;
+}
+
+.command-input {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.resource-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-item label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.action-buttons .btn {
+  flex: 1;
+  text-align: center;
+} 
