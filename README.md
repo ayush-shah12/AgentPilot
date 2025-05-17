@@ -2,6 +2,8 @@
 
 A desktop application for managing and controlling Scrapybara VM instances. Built with Electron and TypeScript. 
 
+![Screen Shot 2025-05-16 at 10 13 39 PM](https://github.com/user-attachments/assets/54825720-fa0c-4e5a-9688-8867f8d59f11)
+
 ## Features
 
 - **Manage Multiple VM Instances**  
