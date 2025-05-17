@@ -91,7 +91,7 @@ This will create platform-specific installers in the `build` directory:
 scrapypilot/
 ├── src/
 │   ├── main/           # Main process code (Electron)
-    |   ├── main.ts     # Electron Logic
+|   |   ├── main.ts     # Electron Logic
 │   ├── renderer/       # Renderer process code (UI)
 │   │   ├── manager.ts     # Manager window logic
 │   │   ├── manager.html   # Manager window UI
