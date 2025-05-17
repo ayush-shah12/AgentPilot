@@ -1,6 +1,6 @@
 # ScrapyPilot
 
-A desktop application for managing and controlling Scrapybara VM instances. Built with Electron and TypeScript. 
+A desktop application for managing and controlling VM instances with Computer Use Agents. Built with Electron and TypeScript. VMs powered by Scrapybara. 
 ![image](https://github.com/user-attachments/assets/01d61637-e56c-478e-ac3f-93e8cebc9801)
 
 In the image above, I prompted two different instances to simultaneously complete 2 different tasks. One was summarize the stock market for the day, the other was summarizing a research topic!
