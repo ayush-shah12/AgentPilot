@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ScrapyPilot Manager</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/manager.css">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>ScrapyPilot Manager</h1>
+      <div class="header-controls">
+        <span id="instance-count" class="instance-counter">VM Instances: 0</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="control-panel">
+        <div class="card">
+          <h2>Create New Instance</h2>
+          <div class="form-group">
+            <input type="text" id="vm-name" placeholder="Enter VM name" class="input-field" autocomplete="off">
+            <button id="create-vm" class="btn btn-primary">Create VM Instance</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Active Instances</h2>
+          <div id="vm-list" class="vm-list">
+          </div>
+        </div>
+      </section>
+
+      <section class="status-panel">
+        <div class="card">
+          <h2>System Status</h2>
+          <div id="system-status" class="status-info">
+            <p>Status: <span id="connection-status">Connected</span></p>
+            <p>API Version: <span id="api-version">1.0.0</span></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    console.log('HTML loaded, initializing manager...');
+    try {
+      // debug loading scripts
+      require('@electron/remote');
+      
+      const managerPath = '../../dist/renderer/manager.js';
+      console.log('Loading manager from:', managerPath);
+      require(managerPath);
+      console.log('Manager loaded successfully');
+    } catch (error) {
+      showError(error);
+    }
+  </script>
+</body>
+</html> 
