@@ -37,7 +37,7 @@
     "dotenv": "^16.4.7",
     "electron-store": "^8.2.0",
     "playwright": "^1.49.1",
-    "scrapybara": "^2.0.4",
+    "scrapybara": "^2.5.1",
     "ts-node": "^10.9.2",
     "uuid": "^11.1.0"
   },
