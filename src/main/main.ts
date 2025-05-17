@@ -7,7 +7,8 @@ import { isDev } from '../shared/constants';
 // represents a vm window instance, this is detached from the main manager window
 interface VMWindow {
   window: BrowserWindow;
-  id: string;
+  internal_id: string; // random uuid for internal use (literally just for initialization)
+  instance_id: string | null; // instance id from scrapypilot
 }
 
 class ScrapyPilotApp {
@@ -48,7 +49,7 @@ class ScrapyPilotApp {
                 }
                 this.vmWindows.forEach(vm => {
                   if (!vm.window.isDestroyed()) {
-                    console.log(`Reloading VM window: ${vm.id}`);
+                    console.log(`Reloading VM window: ${vm.internal_id}`);
                     vm.window.reload();
                   }
                 });
@@ -152,7 +153,8 @@ class ScrapyPilotApp {
 
     const vmInstance: VMWindow = {
       window: vmWindow,
-      id: vmId
+      internal_id: vmId,
+      instance_id: null
     };
 
     this.vmWindows.push(vmInstance);
@@ -160,7 +162,7 @@ class ScrapyPilotApp {
 
     vmWindow.on('closed', () => {
       console.log('VM instance closed:', vmId);
-      const index = this.vmWindows.findIndex(vm => vm.id === vmId);
+      const index = this.vmWindows.findIndex(vm => vm.internal_id === vmId);
       if (index !== -1) {
         this.vmWindows.splice(index, 1);
         this.updateInstanceCount();
@@ -209,7 +211,7 @@ class ScrapyPilotApp {
     // Add handlers for VM control
     ipcMain.on('vm-command', (_, { vmId, command, data }) => {
       console.log('Received vm-command:', { vmId, command, data });
-      const vmWindow = this.vmWindows.find(vm => vm.id === vmId);
+      const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
       if (vmWindow) {
         vmWindow.window.webContents.send('vm-command-response', {
           command,
@@ -217,6 +219,23 @@ class ScrapyPilotApp {
           timestamp: new Date().toISOString()
         });
       }
+    });
+
+    // render vm after it's initialized
+    ipcMain.on('scrapypilot-initialized', (_, data: { vmId: string, instanceId: string | null }) => {
+        console.log('ScrapyPilot instance initialized:', data);
+        const vmWindow = this.vmWindows.find(vm => vm.internal_id === data.vmId);
+        if (vmWindow) {
+            vmWindow.instance_id = data.instanceId;
+            
+            
+            if (this.managerWindow && !this.managerWindow.isDestroyed()) {
+                this.managerWindow.webContents.send('vm-status-update', {
+                    vmId: data.vmId,
+                    status: 'running'
+                });
+            }
+        }
     });
   }
 }

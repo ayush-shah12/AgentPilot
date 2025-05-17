@@ -37,9 +37,12 @@
         </section>
 
         <section class="card">
-          <h2>Console Output</h2>
-          <div class="console-container">
-            <div id="console-output" class="console"></div>
+          <h2>Stream Viewer</h2>
+          <div class="stream-container">
+            <iframe id="stream-viewer" 
+                    sandbox="allow-scripts allow-same-origin" 
+                    scrolling="no">
+            </iframe>
           </div>
         </section>
 
@@ -48,6 +51,13 @@
           <div class="command-input">
             <input type="text" id="command-input" class="input-field" placeholder="Enter command...">
             <button id="send-command" class="btn btn-primary">Send</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Console Output</h2>
+          <div class="console-container">
+            <div id="console-output" class="console"></div>
           </div>
         </section>
       </div>
@@ -88,6 +98,18 @@
     </main>
   </div>
 
-  <script src="./vm-instance.js"></script>
+  <script>
+    console.log('VM Instance HTML loaded, initializing...');
+    try {
+      require('@electron/remote');
+      
+      const vmInstancePath = '../../dist/renderer/vm-instance.js';
+      console.log('Loading VM instance from:', vmInstancePath);
+      require(vmInstancePath);
+      console.log('VM instance loaded successfully');
+    } catch (error) {
+      console.error('Failed to load VM instance:', error);
+    }
+  </script>
 </body>
 </html> 
