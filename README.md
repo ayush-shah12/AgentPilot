@@ -91,21 +91,23 @@ This will create platform-specific installers in the `build` directory:
 ```
 scrapypilot/
 ├── src/
-│   ├── main/           # Main process code (Electron)
-|   |   ├── main.ts     # Electron Logic
-│   ├── renderer/       # Renderer process code (UI)
-│   │   ├── manager.ts     # Manager window logic
-│   │   ├── manager.html   # Manager window UI
-│   │   ├── vm-instance.ts # VM instance window logic
-│   │   └── vm-instance.html # VM instance window UI
-│   ├── api/           # API integration and services
-│   ├── styles/         # CSS stylesheets
-│   │   ├── main.css      # Global styles
-│   │   └── manager.css   # Manager-specific styles
-│   └── shared/         # Shared utilities and types
-├── dist/              # Compiled JavaScript output
-├── build/             # Production builds and installers
-└── package.json       # Project configuration and scripts
+│   ├── main/
+│   │   ├── main.ts
+│   ├── renderer/
+│   │   ├── manager.ts
+│   │   ├── manager.html
+│   │   ├── vm-instance.ts
+│   │   └── vm-instance.html
+│   ├── api/
+│   │   ├── scrapypilot.ts
+│   ├── styles/
+│   │   ├── main.css
+│   │   ├── manager.css
+│   │   └── vm-instance.css
+│   └── shared/
+├── dist/
+├── build/
+└── package.json
 ```
 
 ## Scripts
