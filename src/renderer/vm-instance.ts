@@ -1,12 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { ResourceStats } from '../shared/constants';
-
-interface VMData {
-  id: string;
-  name: string;
-  streamURL: string;
-  status: 'initializing' | 'running' | 'error' | 'stopped';
-}
+import { ResourceStats, VMInfo } from '../shared/constants';
 
 class VMInstanceWindow {
   private vmId: string = '';
@@ -67,7 +60,7 @@ class VMInstanceWindow {
   }
 
   private initializeEventListeners() {
-    ipcRenderer.on('render-vm-instance', (_, data: VMData) => {
+    ipcRenderer.on('render-vm-instance', (_, data: VMInfo) => {
       console.log('Received render-vm-instance event:', data);
       
       // Set VM data
@@ -78,7 +71,7 @@ class VMInstanceWindow {
         this.elements.vmName.textContent = data.name;
       }
       
-      this.setupStreamViewer(data.streamURL);
+      this.setupStreamViewer(data.streamURL || '');
       this.updateStatus(data.status);
       
       this.startTime = new Date();

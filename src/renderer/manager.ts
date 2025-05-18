@@ -1,11 +1,5 @@
 import { ipcRenderer } from 'electron';
-
-// Simple type for UI representation only
-interface VMDisplay {
-  id: string;
-  name: string;
-  status: 'initializing' | 'running' | 'error' | 'stopped';
-}
+import { VMInfo } from '../shared/constants';
 
 class ManagerWindow {
   private elements: {
@@ -54,7 +48,7 @@ class ManagerWindow {
     });
     
     // Listen for VM list updates from main
-    ipcRenderer.on('vm-list-update', (_, vmList: VMDisplay[]) => {
+    ipcRenderer.on('vm-list-update', (_, vmList: VMInfo[]) => {
       this.renderVMList(vmList);
     });
     
@@ -71,7 +65,7 @@ class ManagerWindow {
     });
   }
 
-  private renderVMList(vmList: VMDisplay[]) {
+  private renderVMList(vmList: VMInfo[]) {
     // Clear current list
     this.elements.vmList.innerHTML = '';
     
@@ -81,7 +75,7 @@ class ManagerWindow {
     });
   }
 
-  private addVMToList(vm: VMDisplay) {
+  private addVMToList(vm: VMInfo) {
     console.log('Adding VM to list:', vm.name);
     const vmElement = document.createElement('div');
     vmElement.className = 'vm-instance';

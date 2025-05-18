@@ -33,16 +33,10 @@ interface VMWindow {
    */
   info: VMInfo;
 }
-// interface VMWindow {
-//   window: BrowserWindow;
-//   internal_id: string;
-//   instance_id: string | null;
-//   name: string;
-//   pilot: ScrapyPilot;
-//   status: 'running' | 'paused' | 'stopped' | 'error';
-//   created_at: Date;
-// }
 
+/**
+ * Main application class for ScrapyPilot Application
+ */
 class ScrapyPilotApp {
 
   private managerWindow: BrowserWindow | null = null;
