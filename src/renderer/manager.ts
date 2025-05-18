@@ -1,17 +1,13 @@
 import { ipcRenderer } from 'electron';
-import { v4 as uuidv4 } from 'uuid';
 
-// id should correspond to the vm id in the scrapybara api ideally
-interface VMInstance {
+// Simple type for UI representation only
+interface VMDisplay {
   id: string;
   name: string;
-  status: 'running' | 'stopped' | 'error';
-  createdAt: Date;
+  status: 'initializing' | 'running' | 'error' | 'stopped';
 }
 
-// manager window class, this is the main window that manages the vm instances
 class ManagerWindow {
-  private vmInstances: Map<string, VMInstance> = new Map();
   private elements: {
     vmList: HTMLElement;
     createButton: HTMLElement;
@@ -33,56 +29,60 @@ class ManagerWindow {
     };
 
     this.initializeEventListeners();
+    
+    // Request initial VM list from main process
+    ipcRenderer.send('get-vm-instances');
   }
 
   private initializeEventListeners() {
     console.log('Initializing event listeners...');
+    
+    // Create button - just sends request to main
     this.elements.createButton.addEventListener('click', () => {
       console.log('Create button clicked!');
-      this.createVMInstance();
+      const vmName = this.elements.vmNameInput.value.trim();
+      if (!vmName) {
+        this.showError('Please enter a VM name');
+        return;
+      }
+      
+      // Send request to main to create VM
+      ipcRenderer.send('request-create-vm', { name: vmName });
+      
+      // Clear input
+      this.elements.vmNameInput.value = '';
     });
     
+    // Listen for VM list updates from main
+    ipcRenderer.on('vm-list-update', (_, vmList: VMDisplay[]) => {
+      this.renderVMList(vmList);
+    });
+    
+    // Listen for instance count updates
     ipcRenderer.on('update-instance-count', (_, count: number) => {
       console.log('Received instance count update:', count);
       this.updateInstanceCount(count);
     });
 
+    // Listen for individual VM updates
     ipcRenderer.on('vm-status-update', (_, data: { vmId: string; status: string }) => {
       console.log('Received VM status update:', data);
-      this.updateVMStatus(data.vmId, data.status as VMInstance['status']);
+      this.updateVMStatus(data.vmId, data.status);
     });
   }
 
-  private createVMInstance() {
-    console.log('Creating VM instance...');
-    const vmName = this.elements.vmNameInput.value.trim();
-    if (!vmName) {
-      this.showError('Please enter a VM name');
-      return;
-    }
-
-    // temporarily using random uuids
-    const vmId = uuidv4();
-    console.log('Generated VM ID:', vmId);
+  private renderVMList(vmList: VMDisplay[]) {
+    // Clear current list
+    this.elements.vmList.innerHTML = '';
     
-    const vmInstance: VMInstance = {
-      id: vmId,
-      name: vmName,
-      status: 'running',
-      createdAt: new Date()
-    };
-
-    this.vmInstances.set(vmId, vmInstance);
-    this.addVMToList(vmInstance);
-    console.log('Sending create-vm-instance event to main process with ID:', vmId);
-    ipcRenderer.send('create-vm-instance', vmId);
-    
-    // Clear input
-    this.elements.vmNameInput.value = '';
+    // Add each VM to the list
+    vmList.forEach(vm => {
+      this.addVMToList(vm);
+    });
   }
 
-  // TODO: add a better way to displayu instances more deterministically
-  private addVMToList(vm: VMInstance) {
+  private addVMToList(vm: VMDisplay) {
+    console.log('Adding VM to list:', vm.name);
     const vmElement = document.createElement('div');
     vmElement.className = 'vm-instance';
     vmElement.id = `vm-${vm.id}`;
@@ -92,19 +92,27 @@ class ManagerWindow {
         <span class="vm-status ${vm.status}">${vm.status}</span>
       </div>
       <div class="vm-controls">
-        <button class="btn btn-secondary vm-action" data-action="start">Start</button>
-        <button class="btn btn-secondary vm-action" data-action="stop">Stop</button>
-        <button class="btn btn-danger vm-action" data-action="delete">Delete</button>
+        <button class="btn btn-secondary vm-action" data-action="pause" data-vm-id="${vm.id}">Pause</button>
+        <button class="btn btn-secondary vm-action" data-action="resume" data-vm-id="${vm.id}">Resume</button>
+        <button class="btn btn-secondary vm-action" data-action="stop" data-vm-id="${vm.id}">Stop</button>
       </div>
     `;
 
-    // not working
-    const controls = vmElement.querySelectorAll('.vm-action');
-    controls.forEach(control => {
-      control.addEventListener('click', (e) => {
-        const action = (e.target as HTMLElement).dataset.action;
-        if (action) {
-          this.handleVMAction(vm.id, action);
+    // Add event listeners to buttons
+    const actionButtons = vmElement.querySelectorAll('.vm-action');
+    actionButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const action = target.dataset.action;
+        const vmId = target.dataset.vmId;
+        
+        if (action && vmId) {
+          // Send command to main process
+          ipcRenderer.send('vm-action', { 
+            vmId: vmId, 
+            action: action,
+            data: null
+          });
         }
       });
     });
@@ -112,23 +120,11 @@ class ManagerWindow {
     this.elements.vmList.appendChild(vmElement);
   }
 
-  private handleVMAction(vmId: string, action: string) {
-    ipcRenderer.send('vm-command', {
-      vmId,
-      command: action,
-      data: {}
-    });
-  }
-
-  private updateVMStatus(vmId: string, status: VMInstance['status']) {
-    const vmInstance = this.vmInstances.get(vmId);
-    if (vmInstance) {
-      vmInstance.status = status;
-      const statusElement = document.querySelector(`#vm-${vmId} .vm-status`);
-      if (statusElement) {
-        statusElement.className = `vm-status ${status}`;
-        statusElement.textContent = status;
-      }
+  private updateVMStatus(vmId: string, status: string) {
+    const statusElement = document.querySelector(`#vm-${vmId} .vm-status`);
+    if (statusElement) {
+      statusElement.className = `vm-status ${status}`;
+      statusElement.textContent = status;
     }
   }
 

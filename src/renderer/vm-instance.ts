@@ -1,5 +1,4 @@
-import { BrowserWindow, ipcRenderer } from 'electron';
-import { ScrapyPilot } from '../api/scrapypilot';
+import { ipcRenderer } from 'electron';
 
 interface ResourceStats {
   cpu: number;
@@ -7,13 +6,22 @@ interface ResourceStats {
   networkIO: string;
 }
 
+interface VMData {
+  id: string;
+  name: string;
+  streamURL: string;
+  status: 'initializing' | 'running' | 'error' | 'stopped';
+}
+
 class VMInstanceWindow {
   private vmId: string = '';
+  private vmName: string = '';
   private status: string = 'initializing';
   private startTime: Date | null = null;
   private uptimeInterval: NodeJS.Timeout | null = null;
   private elements: {
     vmId: HTMLElement;
+    vmName: HTMLElement;
     status: HTMLElement;
     uptime: HTMLElement;
     consoleOutput: HTMLElement;
@@ -25,11 +33,11 @@ class VMInstanceWindow {
     openManager: HTMLElement;
     streamViewer: HTMLIFrameElement;
   };
-  private pilot: ScrapyPilot | null = null;
 
   constructor() {
     this.elements = {
       vmId: document.getElementById('vm-id')!,
+      vmName: document.getElementById('vm-name') || document.createElement('span'),
       status: document.getElementById('vm-status')!,
       uptime: document.getElementById('vm-uptime')!,
       consoleOutput: document.getElementById('console-output')!,
@@ -45,43 +53,8 @@ class VMInstanceWindow {
     this.initializeEventListeners();
   }
 
-  private async initializeInstance() {
-    try {
-      console.log('Initializing instance...');
-      this.pilot = new ScrapyPilot();
-      const streamURL = await this.pilot.init();
-      
-      if (!streamURL) {
-        throw new Error('Failed to get stream URL');
-      }
-
-      // log to console
-      this.appendToConsole(`noVNC Viewer URL: ${streamURL}`, 'info');
-
-      this.setupStreamViewer(streamURL);
-
-      const scrapyPilotId = this.pilot.getInstanceId();
-      
-      ipcRenderer.send('scrapypilot-initialized', {
-        vmId: this.vmId,
-        instanceId: scrapyPilotId
-      });
-
-      this.updateStatus('running');
-      this.startTime = new Date();
-      this.startUptimeCounter();
-
-    } catch (error) {
-      console.error('Failed to initialize instance:', error);
-      this.updateStatus('error');
-      this.appendToConsole(`Error: ${error}`, 'error');
-      throw error;
-    }
-  }
-
   private setupStreamViewer(streamURL: string) {
     try {
-      
       this.elements.streamViewer.src = streamURL;
       
       this.elements.streamViewer.onload = () => {
@@ -99,25 +72,41 @@ class VMInstanceWindow {
   }
 
   private initializeEventListeners() {
-    // event listeners
-    ipcRenderer.on('vm-id', async (_, id: string) => {
-      this.vmId = id;
-      this.elements.vmId.textContent = id;
+    ipcRenderer.on('render-vm-instance', (_, data: VMData) => {
+      console.log('Received render-vm-instance event:', data);
       
-      try {
-        await this.initializeInstance();
-      } catch (error) {
-        console.error('Failed to initialize instance:', error);
-        this.updateStatus('error');
+      // Set VM data
+      this.vmId = data.id;
+      this.vmName = data.name;
+      this.elements.vmId.textContent = data.id;
+      if (this.elements.vmName) {
+        this.elements.vmName.textContent = data.name;
       }
+      
+      this.setupStreamViewer(data.streamURL);
+      this.updateStatus(data.status);
+      
+      this.startTime = new Date();
+      this.startUptimeCounter();
+      
+      this.appendToConsole(`VM Instance "${data.name}" initialized`, 'info');
+      this.appendToConsole(`Stream URL: ${data.streamURL}`, 'info');
     });
 
-    ipcRenderer.on('vm-command-response', (_, response: any) => {
-      this.handleCommandResponse(response);
+    ipcRenderer.on('command-response', (_, response: any) => {
+      if (response.success) {
+        this.appendToConsole(response.result || 'Command executed successfully');
+      } else {
+        this.appendToConsole(`Error: ${response.error}`, 'error');
+      }
     });
 
     ipcRenderer.on('resource-update', (_, stats: ResourceStats) => {
       this.updateResourceStats(stats);
+    });
+    
+    ipcRenderer.on('status-update', (_, status: string) => {
+      this.updateStatus(status);
     });
 
     this.elements.sendCommand.addEventListener('click', () => this.sendCommand());
@@ -139,30 +128,19 @@ class VMInstanceWindow {
         }
       });
     });
-
-    const createInstanceButton = document.getElementById('create-instance-button');
-    createInstanceButton?.addEventListener('click', () => this.initializeInstance());
   }
 
-  private async sendCommand() {
+  private sendCommand() {
     const command = this.elements.commandInput.value.trim();
     if (!command) return;
 
-    // First append to console
     this.appendToConsole(`> ${command}`, 'command');
 
-    try {
-        // call act() on every command (this doesn't work currently, must be another method)
-        if (this.pilot) {
-            await this.pilot.act(command);
-            this.appendToConsole('Command executed successfully', 'info');
-        } else {
-            throw new Error('ScrapyPilot instance not initialized');
-        }
-    } catch (error) {
-        console.error('Failed to execute command:', error);
-        this.appendToConsole(`Error executing command: ${error}`, 'error');
-    }
+    ipcRenderer.send('vm-command', {
+      vmId: this.vmId,
+      command: 'act',
+      data: { command }
+    });
 
     this.elements.commandInput.value = '';
   }
@@ -175,27 +153,11 @@ class VMInstanceWindow {
     });
   }
 
-  private handleCommandResponse(response: any) {
-    const { command, data, timestamp } = response;
-    
-    switch (command) {
-      case 'execute':
-        this.appendToConsole(data.output);
-        break;
-      case 'status':
-        this.updateStatus(data.status);
-        break;
-      default:
-        console.log('Unknown command response:', response);
-    }
-  }
-
   private updateStatus(newStatus: string) {
     this.status = newStatus;
     this.elements.status.textContent = newStatus;
     this.elements.status.className = `status-badge ${newStatus}`;
 
-    
     if (newStatus === 'stopped' || newStatus === 'error') {
       if (this.uptimeInterval) {
         clearInterval(this.uptimeInterval);
@@ -222,7 +184,6 @@ class VMInstanceWindow {
     messageElement.textContent = message;
     this.elements.consoleOutput.appendChild(messageElement);
     
-    // Auto-scroll to bottom
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
   }
 
@@ -252,61 +213,6 @@ class VMInstanceWindow {
 
     this.elements.uptime.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
   }
-
-  async cleanup() {
-    if (this.uptimeInterval) {
-      clearInterval(this.uptimeInterval);
-      this.uptimeInterval = null;
-    }
-
-    if (this.pilot) {
-      await this.pilot.cleanup();
-      this.pilot = null;
-      this.vmId = '';
-      this.updateStatus('stopped');
-    }
-  }
 }
 
 new VMInstanceWindow();
-
-// main function to create a new instance
-async function createNewInstance() {
-  try {
-    const pilot = new ScrapyPilot();
-    const streamURL = await pilot.init();
-    
-    if (!streamURL) {
-      throw new Error('Failed to get stream URL');
-    }
-
-    const window = new BrowserWindow({
-      width: 1024,
-      height: 768,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false
-      }
-    });
-
-    await window.loadURL(streamURL);
-
-    window.on('closed', () => {
-      pilot.cleanup();
-    });
-
-    return window;
-  } catch (error) {
-    console.error('Failed to create instance:', error);
-    throw error;
-  }
-}
-
-ipcRenderer.on('create-new-instance', async () => {
-  await createNewInstance();
-});
-
-window.addEventListener('beforeunload', () => {
-  const vmInstance = new VMInstanceWindow();
-  vmInstance.cleanup();
-}); 

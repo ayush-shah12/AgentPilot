@@ -1,28 +1,36 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
+import { app, BrowserWindow, ipcMain } from 'electron';
+
+import { ScrapyPilot } from '../api/scrapypilot';
 import { isDev } from '../shared/constants';
 
-// represents a vm window instance, this is detached from the main manager window
 interface VMWindow {
   window: BrowserWindow;
-  internal_id: string; // random uuid for internal use (literally just for initialization)
-  instance_id: string | null; // instance id from scrapypilot
+  internal_id: string;
+  instance_id: string | null;
+  name: string;
+  pilot: ScrapyPilot;
+  status: 'running' | 'paused' | 'stopped' | 'error';
+  created_at: Date;
 }
 
 class ScrapyPilotApp {
 
-  // main window instance (only one exists at any given time, iff this exists, vm windows can exist)
   private managerWindow: BrowserWindow | null = null;
 
-  // store list of vm windows instances
   private vmWindows: VMWindow[] = [];
 
   constructor() {
     this.initializeApp();
   }
 
+  /* 
+   * Initializes the application by creating the manager window, 
+   * setting up event listeners, and establishing IPC handlers
+   */
   private initializeApp() {
     require('@electron/remote/main').initialize();
 
@@ -86,6 +94,10 @@ class ScrapyPilotApp {
     this.setupIpcHandlers();
   }
 
+  /* 
+   * Creates and configures the main manager window
+   * Shows existing window if already created
+   */
   private createManagerWindow() {
     console.log('Creating manager window...');
     if (this.managerWindow) {
@@ -133,72 +145,122 @@ class ScrapyPilotApp {
     });
   }
 
-  private createVMInstance(vmId: string) {
-    console.log('Creating VM instance with ID:', vmId);
-    const vmWindow = new BrowserWindow({
-      width: 800,
-      height: 600,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false
-      },
-      autoHideMenuBar: true
-    });
+  /* 
+   * Creates a new VM instance with the specified name
+   * Initializes ScrapyPilot, opens window, and establishes communication
+   */
+  private async createVMInstance(name: string) {
 
-    const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'vm-instance.html');
-    console.log('Loading VM instance HTML from:', htmlPath);
-    vmWindow.loadFile(htmlPath);
+    try{
+      console.log('Creating VM instance with name:', name);
 
-    require('@electron/remote/main').enable(vmWindow.webContents);
-
-    const vmInstance: VMWindow = {
-      window: vmWindow,
-      internal_id: vmId,
-      instance_id: null
-    };
-
-    this.vmWindows.push(vmInstance);
-    this.updateInstanceCount();
-
-    vmWindow.on('closed', () => {
-      console.log('VM instance closed:', vmId);
-      const index = this.vmWindows.findIndex(vm => vm.internal_id === vmId);
-      if (index !== -1) {
-        this.vmWindows.splice(index, 1);
-        this.updateInstanceCount();
-
-        if (this.vmWindows.length === 0 && this.managerWindow) {
-          this.managerWindow.show();
-        }
+      const pilot = new ScrapyPilot();
+      const streamURL = await pilot.init();
+      
+      if (!streamURL) {
+        throw new Error('Failed to get stream URL');
       }
-    });
 
-    // Send VM ID to the renderer
-    vmWindow.webContents.on('did-finish-load', () => {
-      console.log('VM instance loaded, sending ID:', vmId);
-      vmWindow.webContents.send('vm-id', vmId);
-    });
+      const vmId = uuidv4();
+  
+      const vmWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+          nodeIntegration: true,
+          contextIsolation: false
+        },
+        autoHideMenuBar: true
+      });
 
-    // Debug window loading
-    vmWindow.webContents.on('did-fail-load', (_, errorCode, errorDescription) => {
-      console.error('VM instance failed to load:', errorCode, errorDescription);
-    });
+      const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'vm-instance.html');
+      console.log('Loading VM instance HTML from:', htmlPath);
+      vmWindow.loadFile(htmlPath);
+
+      require('@electron/remote/main').enable(vmWindow.webContents);
+
+      const vmInstance: VMWindow = {
+        window: vmWindow,
+        internal_id: vmId,
+        instance_id: pilot.getInstanceId() || null,
+        name: name,
+        pilot: pilot,
+        status: 'running',
+        created_at: new Date()
+      };
+
+      this.vmWindows.push(vmInstance);
+
+      // update the instance count and vm list
+      this.updateInstanceCount();
+      this.updateVMList();
+
+      // send the instance to the vm instance window for rendering
+      if (vmWindow && !vmWindow.isDestroyed()) {
+        const vmData = {
+          id: vmId,
+          name: name,
+          streamURL: streamURL,
+          status: 'running'
+        };
+        this.sendToVM(vmId, 'render-vm-instance', vmData); // send to vm instance window
+      }
+  
+      // handle the closing of the vm instance window
+      // will cleanup the pilot and remove the instance from the vmWindows array
+      vmWindow.on('closed', () => {
+        console.log('VM instance closed:', vmId);
+        const index = this.vmWindows.findIndex(vm => vm.internal_id === vmId);
+        this.vmWindows[index].pilot.cleanup();
+        if (index !== -1) {
+          this.vmWindows.splice(index, 1);
+          this.updateInstanceCount();
+          this.updateVMList();
+
+          if (this.vmWindows.length === 0 && this.managerWindow) {
+            this.managerWindow.show();
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error creating VM instance:', error);
+    }
   }
 
+  /* 
+   * Updates the instance count in the manager window
+   */
   private updateInstanceCount() {
     if (this.managerWindow && !this.managerWindow.isDestroyed()) {
       this.managerWindow.webContents.send('update-instance-count', this.vmWindows.length);
     }
   }
 
+  /* 
+   * Updates the status of a specific VM instance
+   */
+  private updateInstanceStatus(vmId: string, status: 'running' | 'paused' | 'stopped' | 'error') {
+    const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
+    if (vmWindow) {
+      vmWindow.status = status;
+      this.updateVMList();
+    }
+  }
+
+  /* 
+   * Establishes all IPC communication channels between 
+   * main process and renderer processes
+   */
   private setupIpcHandlers() {
     console.log('Setting up IPC handlers...');
     
-    ipcMain.on('create-vm-instance', (_, vmId: string) => {
-      console.log('Received create-vm-instance event with ID:', vmId);
-      this.createVMInstance(vmId);
+    // create a new VM instance
+    ipcMain.on('request-create-vm', (_, data) => {
+      const vmName = typeof data === 'object' && data.name ? data.name : String(data);
+      this.createVMInstance(vmName);
     });
 
+    // open the manager window (from a VM instance window)
     ipcMain.on('open-manager-window', () => {
       console.log('Received open-manager-window event');
       if (!this.managerWindow) {
@@ -208,35 +270,76 @@ class ScrapyPilotApp {
       }
     });
 
-    // Add handlers for VM control
+    // handle vm commands (stop, pause, resume, prompt)
     ipcMain.on('vm-command', (_, { vmId, command, data }) => {
       console.log('Received vm-command:', { vmId, command, data });
       const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
       if (vmWindow) {
-        vmWindow.window.webContents.send('vm-command-response', {
-          command,
-          data,
-          timestamp: new Date().toISOString()
-        });
+        switch (command) {
+          case 'send-command':
+            // vmWindow.pilot.sendCommand(data);
+            break;
+          case 'pause':
+            vmWindow.pilot.pause();
+            this.updateInstanceStatus(vmId, 'paused');
+            break;
+          case 'resume':
+            vmWindow.pilot.resume();
+            this.updateInstanceStatus(vmId, 'running');
+            break;
+          case 'stop': // stop is equivalent to deleting the VM instance
+            vmWindow.window.destroy();
+            this.updateInstanceStatus(vmId, 'stopped');
+            break;
+        }
       }
     });
 
-    // render vm after it's initialized
-    ipcMain.on('scrapypilot-initialized', (_, data: { vmId: string, instanceId: string | null }) => {
-        console.log('ScrapyPilot instance initialized:', data);
-        const vmWindow = this.vmWindows.find(vm => vm.internal_id === data.vmId);
-        if (vmWindow) {
-            vmWindow.instance_id = data.instanceId;
-            
-            
-            if (this.managerWindow && !this.managerWindow.isDestroyed()) {
-                this.managerWindow.webContents.send('vm-status-update', {
-                    vmId: data.vmId,
-                    status: 'running'
-                });
-            }
-        }
-    });
+  }
+
+  /**
+   * Send message to manager window
+   */
+  private sendToManager(channel: string, data: any) {
+    if (this.managerWindow && !this.managerWindow.isDestroyed()) {
+      console.log(`Sending to manager (${channel}):`, data);
+      this.managerWindow.webContents.send(channel, data);
+    }
+  }
+
+  /**
+   * Send message to a specific VM instance
+   */
+  private sendToVM(vmId: string, channel: string, data: any) {
+    const vmInstance = this.vmWindows.find(vm => vm.internal_id === vmId);
+    if (vmInstance && !vmInstance.window.isDestroyed()) {
+      console.log(`Sending to VM ${vmId} (${channel}):`, data);
+      vmInstance.window.webContents.send(channel, data);
+    }
+  }
+
+  /**
+   * Send message to all VM instances
+   */
+  private broadcastToVMs(channel: string, data: any) {
+    for (const vm of this.vmWindows) {
+      if (!vm.window.isDestroyed()) {
+        console.log(`Broadcasting to VM ${vm.internal_id} (${channel})`);
+        vm.window.webContents.send(channel, data);
+      }
+    }
+  }
+
+  /**
+   * Update VM list in manager
+   */
+  private updateVMList() {
+    const list = this.vmWindows.map(vm => ({
+      id: vm.internal_id,
+      name: vm.name,
+      status: vm.status
+    }));
+    this.sendToManager('vm-list-update', list);
   }
 }
 

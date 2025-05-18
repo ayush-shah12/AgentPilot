@@ -62,6 +62,18 @@ export class ScrapyPilot {
     }
   }
 
+  async pause(): Promise<void> {
+    if (this.instance) {
+      await this.instance.pause();
+    }
+  }
+
+  async resume(): Promise<void> {
+    if (this.instance) {
+      await this.instance.resume();
+    }
+  }
+  
   getInstanceId(): string | null {
     return this.instanceID;
   }
