@@ -173,15 +173,6 @@ class ScrapyPilotApp {
     try {
       debug.log('Creating VM instance with name:', name);
 
-      const pilot = new ScrapyPilot();
-      const streamURL = await pilot.init();
-
-      if (!streamURL) {
-        throw new Error('Failed to get stream URL');
-      }
-
-      const vmId = uuidv4();
-
       const vmWindow = new BrowserWindow({
         width: 800,
         height: 600,
@@ -197,6 +188,15 @@ class ScrapyPilotApp {
       vmWindow.loadFile(htmlPath);
 
       require('@electron/remote/main').enable(vmWindow.webContents);
+
+      const pilot = new ScrapyPilot();
+      const streamURL = await pilot.init();
+
+      if (!streamURL) {
+        throw new Error('Failed to get stream URL');
+      }
+
+      const vmId = uuidv4();
 
       const vmInstance: VMWindow = {
         window: vmWindow,
