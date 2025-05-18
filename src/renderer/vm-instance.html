@@ -1,115 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VM Instance</title>
-  <link rel="stylesheet" href="../styles/main.css">
-  <link rel="stylesheet" href="../styles/vm-instance.css">
-</head>
-<body>
-  <div class="app-container">
-    <header class="app-header">
-      <h1>VM Instance Control</h1>
-      <div class="header-controls">
-        <button id="openManager" class="btn btn-secondary">Open Manager</button>
-      </div>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VM Instance</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="../styles/vm-instance.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <h1>VM Instance Control</h1>
+        <div class="header-controls">
+          <button id="openManager" class="btn btn-secondary">Open Manager</button>
+        </div>
+      </header>
 
-    <main class="main-content">
-      <div class="vm-control-panel">
-        <section class="card">
-          <h2>Instance Information</h2>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Instance ID:</label>
-              <span id="vm-id">Loading...</span>
-            </div>
-            <div class="info-item">
-              <label>Status:</label>
-              <span id="vm-status" class="status-badge">Initializing</span>
-            </div>
-            <div class="info-item">
-              <label>Uptime:</label>
-              <span id="vm-uptime">00:00:00</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>Stream Viewer</h2>
-          <div class="stream-container">
-            <iframe id="stream-viewer" 
-                    sandbox="allow-scripts allow-same-origin" 
-                    scrolling="no">
-            </iframe>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>Command Input</h2>
-          <div class="command-input">
-            <input type="text" id="command-input" class="input-field" placeholder="Enter command...">
-            <button id="send-command" class="btn btn-primary">Send</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>Console Output</h2>
-          <div class="console-container">
-            <div id="console-output" class="console"></div>
-          </div>
-        </section>
-      </div>
-
-      <!-- these aren't parameters supported currently but they seem cool for now -->
-      <div class="vm-status-panel">
-        <section class="card">
-          <h2>Resource Monitor</h2>
-          <div class="resource-stats">
-            <div class="stat-item">
-              <label>CPU Usage</label>
-              <div class="progress-bar">
-                <div id="cpu-usage" class="progress" style="width: 0%">0%</div>
+      <main class="main-content">
+        <div class="vm-control-panel">
+          <section class="card">
+            <h2>Instance Information</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Instance ID:</label>
+                <span id="vm-id">Loading...</span>
+              </div>
+              <div class="info-item">
+                <label>Status:</label>
+                <span id="vm-status" class="status-badge">Initializing</span>
+              </div>
+              <div class="info-item">
+                <label>Uptime:</label>
+                <span id="vm-uptime">00:00:00</span>
               </div>
             </div>
-            <div class="stat-item">
-              <label>Memory Usage</label>
-              <div class="progress-bar">
-                <div id="memory-usage" class="progress" style="width: 0%">0%</div>
+          </section>
+
+          <section class="card">
+            <h2>Stream Viewer</h2>
+            <div class="stream-container">
+              <iframe id="stream-viewer" sandbox="allow-scripts allow-same-origin" scrolling="no">
+              </iframe>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Command Input</h2>
+            <div class="command-input">
+              <input
+                type="text"
+                id="command-input"
+                class="input-field"
+                placeholder="Enter command..."
+              />
+              <button id="send-command" class="btn btn-primary">Send</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Console Output</h2>
+            <div class="console-container">
+              <div id="console-output" class="console"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- these aren't parameters supported currently but they seem cool for now -->
+        <div class="vm-status-panel">
+          <section class="card">
+            <h2>Resource Monitor</h2>
+            <div class="resource-stats">
+              <div class="stat-item">
+                <label>CPU Usage</label>
+                <div class="progress-bar">
+                  <div id="cpu-usage" class="progress" style="width: 0%">0%</div>
+                </div>
+              </div>
+              <div class="stat-item">
+                <label>Memory Usage</label>
+                <div class="progress-bar">
+                  <div id="memory-usage" class="progress" style="width: 0%">0%</div>
+                </div>
+              </div>
+              <div class="stat-item">
+                <label>Network I/O</label>
+                <span id="network-io">0 KB/s</span>
               </div>
             </div>
-            <div class="stat-item">
-              <label>Network I/O</label>
-              <span id="network-io">0 KB/s</span>
+          </section>
+
+          <section class="card">
+            <h2>Quick Actions</h2>
+            <div class="action-buttons">
+              <button class="btn btn-primary" data-action="pause">Pause</button>
+              <button class="btn btn-warning" data-action="resume">Resume</button>
+              <button class="btn btn-danger" data-action="stop">Stop</button>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
+      </main>
+    </div>
 
-        <section class="card">
-          <h2>Quick Actions</h2>
-          <div class="action-buttons">
-            <button class="btn btn-primary" data-action="start">Start</button>
-            <button class="btn btn-warning" data-action="restart">Restart</button>
-            <button class="btn btn-danger" data-action="stop">Stop</button>
-          </div>
-        </section>
-      </div>
-    </main>
-  </div>
+    <script>
+      try {
+        require('@electron/remote');
 
-  <script>
-    console.log('VM Instance HTML loaded, initializing...');
-    try {
-      require('@electron/remote');
-      
-      const vmInstancePath = '../../dist/renderer/vm-instance.js';
-      console.log('Loading VM instance from:', vmInstancePath);
-      require(vmInstancePath);
-      console.log('VM instance loaded successfully');
-    } catch (error) {
-      console.error('Failed to load VM instance:', error);
-    }
-  </script>
-</body>
-</html> 
+        const vmInstancePath = '../../dist/renderer/vm-instance.js';
+        require(vmInstancePath);
+      } catch (error) {
+        console.error('Failed to load VM instance:', error);
+      }
+    </script>
+  </body>
+</html>

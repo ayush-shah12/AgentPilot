@@ -10,12 +10,17 @@
     "start": "npm run build && electron .",
     "dev": "concurrently \"tsc -w\" \"electron .\"",
     "package": "electron-builder build --win --mac --linux",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.{ts,js,json,html,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,html,css}\""
   },
   "keywords": [
     "electron",
     "scrapybara",
-    "vm-management"
+    "vm-management",
+    "computer-use",
+    "claude-3-7-sonnet-20250219",
+    "anthropic"
   ],
   "author": "Ayush Shah",
   "devDependencies": {
@@ -25,6 +30,7 @@
     "electron": "^33.3.1",
     "electron-builder": "^24.13.3",
     "jest": "^29.7.0",
+    "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "sass": "^1.71.1",
     "ts-jest": "^29.1.2",

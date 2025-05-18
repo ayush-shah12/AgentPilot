@@ -1,9 +1,9 @@
-import { Scrapybara, ScrapybaraClient } from "scrapybara";
-import { BaseInstance } from "scrapybara/ScrapybaraClient";
-import { BROWSER_SYSTEM_PROMPT } from "scrapybara/anthropic";
-import { computerTool } from "scrapybara/tools";
+import { Scrapybara, ScrapybaraClient } from 'scrapybara';
+import { BaseInstance } from 'scrapybara/ScrapybaraClient';
+import { BROWSER_SYSTEM_PROMPT } from 'scrapybara/anthropic';
+import { computerTool } from 'scrapybara/tools';
 
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 export class ScrapyPilot {
   private client: ScrapybaraClient;
@@ -23,11 +23,10 @@ export class ScrapyPilot {
     });
 
     this.model = {
-      provider: "anthropic",
-      name: "claude-3-7-sonnet-20250219",
-      apiKey: process.env.ANTHROPIC_API_KEY || "",
+      provider: 'anthropic',
+      name: 'claude-3-7-sonnet-20250219',
+      apiKey: process.env.ANTHROPIC_API_KEY || '',
     };
-
   }
 
   async init(): Promise<string | null> {
@@ -46,7 +45,7 @@ export class ScrapyPilot {
       model: this.model,
       tools: this.tools,
       prompt: userInput,
-      system: BROWSER_SYSTEM_PROMPT
+      system: BROWSER_SYSTEM_PROMPT,
     });
 
     this.instance?.stop();
@@ -59,6 +58,18 @@ export class ScrapyPilot {
       this.instanceID = null;
       this.streamURL = null;
       this.tools = [];
+    }
+  }
+
+  async pause(): Promise<void> {
+    if (this.instance) {
+      await this.instance.pause();
+    }
+  }
+
+  async resume(): Promise<void> {
+    if (this.instance) {
+      await this.instance.resume();
     }
   }
 
