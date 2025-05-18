@@ -1,6 +1,9 @@
 import { ipcRenderer } from 'electron';
 import { VMInfo } from '../shared/constants';
 
+/**
+ * ManagerWindow class for the manager window
+ */
 class ManagerWindow {
   private elements: {
     vmList: HTMLElement;
@@ -11,6 +14,9 @@ class ManagerWindow {
     apiVersion: HTMLElement;
   };
 
+  /**
+   * Constructor for the ManagerWindow class
+   */
   constructor() {
     console.log('ManagerWindow initializing...');
     this.elements = {
@@ -19,19 +25,21 @@ class ManagerWindow {
       vmNameInput: document.getElementById('vm-name') as HTMLInputElement,
       instanceCount: document.getElementById('instance-count')!,
       connectionStatus: document.getElementById('connection-status')!,
-      apiVersion: document.getElementById('api-version')!
+      apiVersion: document.getElementById('api-version')!,
     };
 
     this.initializeEventListeners();
-    
+
     // Request initial VM list from main process
     ipcRenderer.send('get-vm-instances');
   }
 
+  /**
+   * Initializes event listeners for the manager window
+   */
   private initializeEventListeners() {
     console.log('Initializing event listeners...');
-    
-    // Create button - just sends request to main
+
     this.elements.createButton.addEventListener('click', () => {
       console.log('Create button clicked!');
       const vmName = this.elements.vmNameInput.value.trim();
@@ -39,42 +47,47 @@ class ManagerWindow {
         this.showError('Please enter a VM name');
         return;
       }
-      
-      // Send request to main to create VM
+
+      // send to main process
       ipcRenderer.send('request-create-vm', { name: vmName });
-      
-      // Clear input
+
       this.elements.vmNameInput.value = '';
     });
-    
-    // Listen for VM list updates from main
+
+    // event listener for vm list update (creation, deletion, etc)
     ipcRenderer.on('vm-list-update', (_, vmList: VMInfo[]) => {
       this.renderVMList(vmList);
     });
-    
-    // Listen for instance count updates
+
+    // event listener for instance count update
     ipcRenderer.on('update-instance-count', (_, count: number) => {
       console.log('Received instance count update:', count);
       this.updateInstanceCount(count);
     });
 
-    // Listen for individual VM updates
+    // event listener for vm status update
     ipcRenderer.on('vm-status-update', (_, data: { vmId: string; status: string }) => {
       console.log('Received VM status update:', data);
       this.updateVMStatus(data.vmId, data.status);
     });
   }
 
+  /**
+   * Renders the VM list
+   * @param vmList - The list of VMs to render
+   */
   private renderVMList(vmList: VMInfo[]) {
-    // Clear current list
     this.elements.vmList.innerHTML = '';
-    
-    // Add each VM to the list
+
     vmList.forEach(vm => {
       this.addVMToList(vm);
     });
   }
 
+  /**
+   * Adds a VM to the list
+   * @param vm - The VM to add
+   */
   private addVMToList(vm: VMInfo) {
     console.log('Adding VM to list:', vm.name);
     const vmElement = document.createElement('div');
@@ -95,17 +108,16 @@ class ManagerWindow {
     // Add event listeners to buttons
     const actionButtons = vmElement.querySelectorAll('.vm-action');
     actionButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
+      button.addEventListener('click', e => {
         const target = e.target as HTMLElement;
         const action = target.dataset.action;
         const vmId = target.dataset.vmId;
-        
+
         if (action && vmId) {
-          // Send command to main process
-          ipcRenderer.send('vm-action', { 
-            vmId: vmId, 
+          ipcRenderer.send('vm-action', {
+            vmId: vmId,
             action: action,
-            data: null
+            data: null, // null for these buttons
           });
         }
       });
@@ -114,6 +126,11 @@ class ManagerWindow {
     this.elements.vmList.appendChild(vmElement);
   }
 
+  /**
+   * Updates the status of a VM
+   * @param vmId - The ID of the VM to update
+   * @param status - The new status of the VM
+   */
   private updateVMStatus(vmId: string, status: string) {
     const statusElement = document.querySelector(`#vm-${vmId} .vm-status`);
     if (statusElement) {
@@ -122,14 +139,22 @@ class ManagerWindow {
     }
   }
 
+  /**
+   * Updates the instance count
+   * @param count - The new instance count
+   */
   private updateInstanceCount(count: number) {
     this.elements.instanceCount.textContent = `VM Instances: ${count}`;
   }
 
+  /**
+   * Shows an error message
+   * @param message - The message to show
+   */
   private showError(message: string) {
     alert(message);
   }
 }
 
 console.log('Starting ManagerWindow initialization...');
-new ManagerWindow(); 
+new ManagerWindow();

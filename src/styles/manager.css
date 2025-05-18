@@ -66,26 +66,26 @@
 }
 
 .vm-status {
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    display: inline-block;
-    text-align: center;
-    min-width: 80px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
 }
 
 .vm-status.running {
-    background-color: var(--success-color);
-    color: white;
+  background-color: var(--success-color);
+  color: white;
 }
 
 .vm-status.stopped {
-    background-color: var(--danger-color);
-    color: white;
+  background-color: var(--danger-color);
+  color: white;
 }
 
 .vm-status.error {
-    background-color: var(--warning-color);
-    color: white;
-} 
+  background-color: var(--warning-color);
+  color: white;
+}

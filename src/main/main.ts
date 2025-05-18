@@ -12,22 +12,22 @@ interface VMWindow {
    * The Electron window instance
    */
   window: BrowserWindow;
-  
+
   /**
    * Internal ID for identification
    */
   internal_id: string;
-  
+
   /**
    * ScrapyPilot instance ID
    */
   instance_id: string | null;
-  
+
   /**
    * ScrapyPilot instance
    */
   pilot: ScrapyPilot;
-  
+
   /**
    * VM information used for display and communication
    */
@@ -38,7 +38,6 @@ interface VMWindow {
  * Main application class for ScrapyPilot Application
  */
 class ScrapyPilotApp {
-
   private managerWindow: BrowserWindow | null = null;
 
   private vmWindows: VMWindow[] = [];
@@ -47,8 +46,8 @@ class ScrapyPilotApp {
     this.initializeApp();
   }
 
-  /* 
-   * Initializes the application by creating the manager window, 
+  /*
+   * Initializes the application by creating the manager window,
    * setting up event listeners, and establishing IPC handlers
    */
   private initializeApp() {
@@ -56,12 +55,12 @@ class ScrapyPilotApp {
 
     app.on('ready', () => {
       this.createManagerWindow();
-      
+
       // check if in dev mode and watch for changes in the dist and src folders
       if (isDev) {
         const watchPaths = [
           path.join(__dirname, '..', '..', 'dist'),
-          path.join(__dirname, '..', '..', 'src')
+          path.join(__dirname, '..', '..', 'src'),
         ];
 
         console.log('Watching for changes in:', watchPaths);
@@ -114,7 +113,7 @@ class ScrapyPilotApp {
     this.setupIpcHandlers();
   }
 
-  /* 
+  /*
    * Creates and configures the main manager window
    * Shows existing window if already created
    */
@@ -134,10 +133,10 @@ class ScrapyPilotApp {
         contextIsolation: false, // required?
         defaultEncoding: 'utf8',
         webSecurity: false, // temp
-        spellcheck: false
+        spellcheck: false,
       },
       autoHideMenuBar: true,
-      icon: path.join(__dirname, '..', '..', 'src', 'renderer', 'assets', 'icon.png')
+      icon: path.join(__dirname, '..', '..', 'src', 'renderer', 'assets', 'icon.png'),
     });
 
     const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'manager.html');
@@ -165,32 +164,31 @@ class ScrapyPilotApp {
     });
   }
 
-  /* 
+  /*
    * Creates a new VM instance with the specified name
    * Initializes ScrapyPilot, opens window, and establishes communication
    */
   private async createVMInstance(name: string) {
-
-    try{
+    try {
       console.log('Creating VM instance with name:', name);
 
       const pilot = new ScrapyPilot();
       const streamURL = await pilot.init();
-      
+
       if (!streamURL) {
         throw new Error('Failed to get stream URL');
       }
 
       const vmId = uuidv4();
-  
+
       const vmWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
           nodeIntegration: true,
-          contextIsolation: false
+          contextIsolation: false,
         },
-        autoHideMenuBar: true
+        autoHideMenuBar: true,
       });
 
       const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'vm-instance.html');
@@ -208,8 +206,8 @@ class ScrapyPilotApp {
           id: vmId,
           name: name,
           status: 'running',
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       };
 
       this.vmWindows.push(vmInstance);
@@ -224,11 +222,11 @@ class ScrapyPilotApp {
           id: vmId,
           name: name,
           streamURL: streamURL,
-          status: 'running'
+          status: 'running',
         };
         this.sendToVM(vmId, 'render-vm-instance', vmData); // send to vm instance window
       }
-  
+
       // handle the closing of the vm instance window
       // will cleanup the pilot and remove the instance from the vmWindows array
       vmWindow.on('closed', () => {
@@ -250,7 +248,7 @@ class ScrapyPilotApp {
     }
   }
 
-  /* 
+  /*
    * Updates the instance count in the manager window
    */
   private updateInstanceCount() {
@@ -259,7 +257,7 @@ class ScrapyPilotApp {
     }
   }
 
-  /* 
+  /*
    * Updates the status of a specific VM instance
    */
   private updateInstanceStatus(vmId: string, status: 'running' | 'paused' | 'stopped' | 'error') {
@@ -270,13 +268,13 @@ class ScrapyPilotApp {
     }
   }
 
-  /* 
-   * Establishes all IPC communication channels between 
+  /*
+   * Establishes all IPC communication channels between
    * main process and renderer processes
    */
   private setupIpcHandlers() {
     console.log('Setting up IPC handlers...');
-    
+
     // create a new VM instance
     ipcMain.on('request-create-vm', (_, data) => {
       const vmName = typeof data === 'object' && data.name ? data.name : String(data);
@@ -317,7 +315,6 @@ class ScrapyPilotApp {
         }
       }
     });
-
   }
 
   /**
@@ -360,7 +357,7 @@ class ScrapyPilotApp {
     const list = this.vmWindows.map(vm => ({
       id: vm.internal_id,
       name: vm.info.name,
-      status: vm.info.status
+      status: vm.info.status,
     }));
     this.sendToManager('vm-list-update', list);
   }

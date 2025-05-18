@@ -1,6 +1,9 @@
 import { ipcRenderer } from 'electron';
 import { ResourceStats, VMInfo } from '../shared/constants';
 
+/**
+ * VMInstanceWindow class for the VM instance window
+ */
 class VMInstanceWindow {
   private vmId: string = '';
   private vmName: string = '';
@@ -22,6 +25,9 @@ class VMInstanceWindow {
     streamViewer: HTMLIFrameElement;
   };
 
+  /**
+   * Constructor for the VMInstanceWindow class
+   */
   constructor() {
     this.elements = {
       vmId: document.getElementById('vm-id')!,
@@ -41,15 +47,20 @@ class VMInstanceWindow {
     this.initializeEventListeners();
   }
 
+  /**
+   * Sets up the stream viewer
+   * @param streamURL - The URL of the stream to display
+   * this is the noVNC viewer
+   */
   private setupStreamViewer(streamURL: string) {
     try {
       this.elements.streamViewer.src = streamURL;
-      
+
       this.elements.streamViewer.onload = () => {
         this.appendToConsole('noVNC viewer loaded successfully', 'info');
       };
 
-      this.elements.streamViewer.onerror = (error) => {
+      this.elements.streamViewer.onerror = error => {
         console.error('Stream viewer error:', error);
         this.appendToConsole('Failed to load noVNC viewer', 'error');
       };
@@ -59,10 +70,13 @@ class VMInstanceWindow {
     }
   }
 
+  /**
+   * Initializes event listeners for the VM instance window
+   */
   private initializeEventListeners() {
     ipcRenderer.on('render-vm-instance', (_, data: VMInfo) => {
       console.log('Received render-vm-instance event:', data);
-      
+
       // Set VM data
       this.vmId = data.id;
       this.vmName = data.name;
@@ -70,13 +84,14 @@ class VMInstanceWindow {
       if (this.elements.vmName) {
         this.elements.vmName.textContent = data.name;
       }
-      
+
       this.setupStreamViewer(data.streamURL || '');
       this.updateStatus(data.status);
-      
+
       this.startTime = new Date();
       this.startUptimeCounter();
-      
+
+      // logging to this instance's console
       this.appendToConsole(`VM Instance "${data.name}" initialized`, 'info');
       this.appendToConsole(`Stream URL: ${data.streamURL}`, 'info');
     });
@@ -92,13 +107,13 @@ class VMInstanceWindow {
     ipcRenderer.on('resource-update', (_, stats: ResourceStats) => {
       this.updateResourceStats(stats);
     });
-    
+
     ipcRenderer.on('status-update', (_, status: string) => {
       this.updateStatus(status);
     });
 
     this.elements.sendCommand.addEventListener('click', () => this.sendCommand());
-    this.elements.commandInput.addEventListener('keypress', (e) => {
+    this.elements.commandInput.addEventListener('keypress', e => {
       if (e.key === 'Enter') {
         this.sendCommand();
       }
@@ -109,7 +124,7 @@ class VMInstanceWindow {
     });
 
     document.querySelectorAll('[data-action]').forEach(button => {
-      button.addEventListener('click', (e) => {
+      button.addEventListener('click', e => {
         const action = (e.target as HTMLElement).dataset.action;
         if (action) {
           this.sendVMCommand(action);
@@ -118,6 +133,9 @@ class VMInstanceWindow {
     });
   }
 
+  /**
+   * Sends a command to the VM instance
+   */
   private sendCommand() {
     const command = this.elements.commandInput.value.trim();
     if (!command) return;
@@ -127,20 +145,28 @@ class VMInstanceWindow {
     ipcRenderer.send('vm-command', {
       vmId: this.vmId,
       command: 'act',
-      data: { command }
+      data: { command },
     });
 
     this.elements.commandInput.value = '';
   }
 
+  /**
+   * Sends a command to the VM instance
+   * @param action - The action to send
+   */
   private sendVMCommand(action: string) {
     ipcRenderer.send('vm-command', {
       vmId: this.vmId,
       command: action,
-      data: {}
+      data: {},
     });
   }
 
+  /**
+   * Updates the status of the VM instance
+   * @param newStatus - The new status of the VM instance
+   */
   private updateStatus(newStatus: string) {
     this.status = newStatus;
     this.elements.status.textContent = newStatus;
@@ -156,6 +182,10 @@ class VMInstanceWindow {
     }
   }
 
+  /**
+   * Updates the resource stats of the VM instance
+   * @param stats - The resource stats of the VM instance
+   */
   private updateResourceStats(stats: ResourceStats) {
     this.elements.cpuUsage.style.width = `${stats.cpu}%`;
     this.elements.cpuUsage.textContent = `${stats.cpu}%`;
@@ -166,15 +196,23 @@ class VMInstanceWindow {
     this.elements.networkIO.textContent = stats.networkIO;
   }
 
+  /**
+   * Appends a message to the console
+   * @param message - The message to append
+   * @param type - The type of message
+   */
   private appendToConsole(message: string, type: 'command' | 'info' | 'error' = 'info') {
     const messageElement = document.createElement('div');
     messageElement.className = `console-message ${type}`;
     messageElement.textContent = message;
     this.elements.consoleOutput.appendChild(messageElement);
-    
+
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
   }
 
+  /**
+   * Starts the uptime counter
+   */
   private startUptimeCounter() {
     if (this.uptimeInterval) {
       clearInterval(this.uptimeInterval);
@@ -185,6 +223,9 @@ class VMInstanceWindow {
     }, 1000);
   }
 
+  /**
+   * Updates the uptime
+   */
   private updateUptime() {
     if (!this.startTime) return;
 
