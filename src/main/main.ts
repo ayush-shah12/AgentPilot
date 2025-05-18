@@ -5,17 +5,43 @@ import { v4 as uuidv4 } from 'uuid';
 import { app, BrowserWindow, ipcMain } from 'electron';
 
 import { ScrapyPilot } from '../api/scrapypilot';
-import { isDev } from '../shared/constants';
+import { isDev, VMInfo } from '../shared/constants';
 
 interface VMWindow {
+  /**
+   * The Electron window instance
+   */
   window: BrowserWindow;
+  
+  /**
+   * Internal ID for identification
+   */
   internal_id: string;
+  
+  /**
+   * ScrapyPilot instance ID
+   */
   instance_id: string | null;
-  name: string;
+  
+  /**
+   * ScrapyPilot instance
+   */
   pilot: ScrapyPilot;
-  status: 'running' | 'paused' | 'stopped' | 'error';
-  created_at: Date;
+  
+  /**
+   * VM information used for display and communication
+   */
+  info: VMInfo;
 }
+// interface VMWindow {
+//   window: BrowserWindow;
+//   internal_id: string;
+//   instance_id: string | null;
+//   name: string;
+//   pilot: ScrapyPilot;
+//   status: 'running' | 'paused' | 'stopped' | 'error';
+//   created_at: Date;
+// }
 
 class ScrapyPilotApp {
 
@@ -183,10 +209,13 @@ class ScrapyPilotApp {
         window: vmWindow,
         internal_id: vmId,
         instance_id: pilot.getInstanceId() || null,
-        name: name,
         pilot: pilot,
-        status: 'running',
-        created_at: new Date()
+        info: {
+          id: vmId,
+          name: name,
+          status: 'running',
+          createdAt: new Date()
+        }
       };
 
       this.vmWindows.push(vmInstance);
@@ -242,7 +271,7 @@ class ScrapyPilotApp {
   private updateInstanceStatus(vmId: string, status: 'running' | 'paused' | 'stopped' | 'error') {
     const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
     if (vmWindow) {
-      vmWindow.status = status;
+      vmWindow.info.status = status;
       this.updateVMList();
     }
   }
@@ -336,8 +365,8 @@ class ScrapyPilotApp {
   private updateVMList() {
     const list = this.vmWindows.map(vm => ({
       id: vm.internal_id,
-      name: vm.name,
-      status: vm.status
+      name: vm.info.name,
+      status: vm.info.status
     }));
     this.sendToManager('vm-list-update', list);
   }

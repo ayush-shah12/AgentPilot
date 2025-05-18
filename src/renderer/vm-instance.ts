@@ -1,10 +1,5 @@
 import { ipcRenderer } from 'electron';
-
-interface ResourceStats {
-  cpu: number;
-  memory: number;
-  networkIO: string;
-}
+import { ResourceStats } from '../shared/constants';
 
 interface VMData {
   id: string;
