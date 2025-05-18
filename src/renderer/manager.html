@@ -50,17 +50,14 @@
     </div>
 
     <script>
-      console.log('HTML loaded, initializing manager...');
       try {
         // debug loading scripts
         require('@electron/remote');
 
         const managerPath = '../../dist/renderer/manager.js';
-        console.log('Loading manager from:', managerPath);
         require(managerPath);
-        console.log('Manager loaded successfully');
       } catch (error) {
-        showError(error);
+        // showError(error);
       }
     </script>
   </body>

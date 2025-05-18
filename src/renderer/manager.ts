@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { VMInfo } from '../shared/constants';
+import { debug } from '../shared/utils';
 
 /**
  * ManagerWindow class for the manager window
@@ -18,7 +19,7 @@ class ManagerWindow {
    * Constructor for the ManagerWindow class
    */
   constructor() {
-    console.log('ManagerWindow initializing...');
+    debug.log('ManagerWindow initializing...');
     this.elements = {
       vmList: document.getElementById('vm-list')!,
       createButton: document.getElementById('create-vm')!,
@@ -38,10 +39,10 @@ class ManagerWindow {
    * Initializes event listeners for the manager window
    */
   private initializeEventListeners() {
-    console.log('Initializing event listeners...');
+    debug.log('Initializing event listeners...');
 
     this.elements.createButton.addEventListener('click', () => {
-      console.log('Create button clicked!');
+      debug.log('Create button clicked!');
       const vmName = this.elements.vmNameInput.value.trim();
       if (!vmName) {
         this.showError('Please enter a VM name');
@@ -61,13 +62,13 @@ class ManagerWindow {
 
     // event listener for instance count update
     ipcRenderer.on('update-instance-count', (_, count: number) => {
-      console.log('Received instance count update:', count);
+      debug.log('Received instance count update:', count);
       this.updateInstanceCount(count);
     });
 
     // event listener for vm status update
     ipcRenderer.on('vm-status-update', (_, data: { vmId: string; status: string }) => {
-      console.log('Received VM status update:', data);
+      debug.log('Received VM status update:', data);
       this.updateVMStatus(data.vmId, data.status);
     });
   }
@@ -89,7 +90,7 @@ class ManagerWindow {
    * @param vm - The VM to add
    */
   private addVMToList(vm: VMInfo) {
-    console.log('Adding VM to list:', vm.name);
+    debug.log('Adding VM to list:', vm.name);
     const vmElement = document.createElement('div');
     vmElement.className = 'vm-instance';
     vmElement.id = `vm-${vm.id}`;
@@ -156,5 +157,5 @@ class ManagerWindow {
   }
 }
 
-console.log('Starting ManagerWindow initialization...');
+debug.log('Starting ManagerWindow initialization...');
 new ManagerWindow();

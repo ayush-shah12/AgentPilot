@@ -102,14 +102,11 @@
     </div>
 
     <script>
-      console.log('VM Instance HTML loaded, initializing...');
       try {
         require('@electron/remote');
 
         const vmInstancePath = '../../dist/renderer/vm-instance.js';
-        console.log('Loading VM instance from:', vmInstancePath);
         require(vmInstancePath);
-        console.log('VM instance loaded successfully');
       } catch (error) {
         console.error('Failed to load VM instance:', error);
       }

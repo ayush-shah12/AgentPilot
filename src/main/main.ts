@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { app, BrowserWindow, ipcMain } from 'electron';
 
 import { ScrapyPilot } from '../api/scrapypilot';
-import { isDev, VMInfo } from '../shared/constants';
+import { VMInfo } from '../shared/constants';
+import { isDev, debug } from '../shared/utils';
 
 interface VMWindow {
   /**
@@ -63,20 +64,20 @@ class ScrapyPilotApp {
           path.join(__dirname, '..', '..', 'src'),
         ];
 
-        console.log('Watching for changes in:', watchPaths);
+        debug.log('Watching for changes in:', watchPaths);
 
         watchPaths.forEach(watchPath => {
           if (fs.existsSync(watchPath)) {
             fs.watch(watchPath, { recursive: true }, (eventType, filename) => {
               if (filename) {
-                console.log(`File changed: ${filename}`);
+                debug.log(`File changed: ${filename}`);
                 if (this.managerWindow && !this.managerWindow.isDestroyed()) {
-                  console.log('Reloading manager window...');
+                  debug.log('Reloading manager window...');
                   this.managerWindow.reload();
                 }
                 this.vmWindows.forEach(vm => {
                   if (!vm.window.isDestroyed()) {
-                    console.log(`Reloading VM window: ${vm.internal_id}`);
+                    debug.log(`Reloading VM window: ${vm.internal_id}`);
                     vm.window.reload();
                   }
                 });
@@ -89,13 +90,13 @@ class ScrapyPilotApp {
 
     // all windows closed case
     app.on('window-all-closed', () => {
-      console.log('All windows closed, quitting application...');
+      debug.log('All windows closed, quitting application...');
       app.quit();
     });
 
     // ensure all windows are closed before quitting
     app.on('before-quit', () => {
-      console.log('Application is quitting...');
+      debug.log('Application is quitting...');
       // Close all VM windows
       this.vmWindows.forEach(vm => {
         if (!vm.window.isDestroyed()) {
@@ -118,9 +119,9 @@ class ScrapyPilotApp {
    * Shows existing window if already created
    */
   private createManagerWindow() {
-    console.log('Creating manager window...');
+    debug.log('Creating manager window...');
     if (this.managerWindow) {
-      console.log('Manager window exists, showing it...');
+      debug.log('Manager window exists, showing it...');
       this.managerWindow.show();
       return;
     }
@@ -140,7 +141,7 @@ class ScrapyPilotApp {
     });
 
     const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'manager.html');
-    console.log('Loading manager HTML from:', htmlPath);
+    debug.log('Loading manager HTML from:', htmlPath);
     this.managerWindow.loadFile(htmlPath);
 
     require('@electron/remote/main').enable(this.managerWindow.webContents);
@@ -150,17 +151,17 @@ class ScrapyPilotApp {
     }
 
     this.managerWindow.on('close', () => {
-      console.log('Manager window closing...');
+      debug.log('Manager window closing...');
       app.quit();
     });
 
     // debugging shit
     this.managerWindow.webContents.on('did-finish-load', () => {
-      console.log('Manager window loaded successfully');
+      debug.log('Manager window loaded successfully');
     });
 
     this.managerWindow.webContents.on('did-fail-load', (_, errorCode, errorDescription) => {
-      console.error('Manager window failed to load:', errorCode, errorDescription);
+      debug.error('Manager window failed to load:', errorCode, errorDescription);
     });
   }
 
@@ -170,7 +171,7 @@ class ScrapyPilotApp {
    */
   private async createVMInstance(name: string) {
     try {
-      console.log('Creating VM instance with name:', name);
+      debug.log('Creating VM instance with name:', name);
 
       const pilot = new ScrapyPilot();
       const streamURL = await pilot.init();
@@ -192,7 +193,7 @@ class ScrapyPilotApp {
       });
 
       const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'vm-instance.html');
-      console.log('Loading VM instance HTML from:', htmlPath);
+      debug.log('Loading VM instance HTML from:', htmlPath);
       vmWindow.loadFile(htmlPath);
 
       require('@electron/remote/main').enable(vmWindow.webContents);
@@ -230,7 +231,7 @@ class ScrapyPilotApp {
       // handle the closing of the vm instance window
       // will cleanup the pilot and remove the instance from the vmWindows array
       vmWindow.on('closed', () => {
-        console.log('VM instance closed:', vmId);
+        debug.log('VM instance closed:', vmId);
         const index = this.vmWindows.findIndex(vm => vm.internal_id === vmId);
         this.vmWindows[index].pilot.cleanup();
         if (index !== -1) {
@@ -244,7 +245,7 @@ class ScrapyPilotApp {
         }
       });
     } catch (error) {
-      console.error('Error creating VM instance:', error);
+      debug.error('Error creating VM instance:', error);
     }
   }
 
@@ -273,7 +274,7 @@ class ScrapyPilotApp {
    * main process and renderer processes
    */
   private setupIpcHandlers() {
-    console.log('Setting up IPC handlers...');
+    debug.log('Setting up IPC handlers...');
 
     // create a new VM instance
     ipcMain.on('request-create-vm', (_, data) => {
@@ -283,7 +284,7 @@ class ScrapyPilotApp {
 
     // open the manager window (from a VM instance window)
     ipcMain.on('open-manager-window', () => {
-      console.log('Received open-manager-window event');
+      debug.log('Received open-manager-window event');
       if (!this.managerWindow) {
         this.createManagerWindow();
       } else {
@@ -293,7 +294,7 @@ class ScrapyPilotApp {
 
     // handle vm commands (stop, pause, resume, prompt)
     ipcMain.on('vm-command', (_, { vmId, command, data }) => {
-      console.log('Received vm-command:', { vmId, command, data });
+      debug.log('Received vm-command:', { vmId, command, data });
       const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
       if (vmWindow) {
         switch (command) {
@@ -322,7 +323,7 @@ class ScrapyPilotApp {
    */
   private sendToManager(channel: string, data: any) {
     if (this.managerWindow && !this.managerWindow.isDestroyed()) {
-      console.log(`Sending to manager (${channel}):`, data);
+      debug.log(`Sending to manager (${channel}):`, data);
       this.managerWindow.webContents.send(channel, data);
     }
   }
@@ -333,7 +334,7 @@ class ScrapyPilotApp {
   private sendToVM(vmId: string, channel: string, data: any) {
     const vmInstance = this.vmWindows.find(vm => vm.internal_id === vmId);
     if (vmInstance && !vmInstance.window.isDestroyed()) {
-      console.log(`Sending to VM ${vmId} (${channel}):`, data);
+      debug.log(`Sending to VM ${vmId} (${channel}):`, data);
       vmInstance.window.webContents.send(channel, data);
     }
   }
@@ -344,7 +345,7 @@ class ScrapyPilotApp {
   private broadcastToVMs(channel: string, data: any) {
     for (const vm of this.vmWindows) {
       if (!vm.window.isDestroyed()) {
-        console.log(`Broadcasting to VM ${vm.internal_id} (${channel})`);
+        debug.log(`Broadcasting to VM ${vm.internal_id} (${channel})`);
         vm.window.webContents.send(channel, data);
       }
     }

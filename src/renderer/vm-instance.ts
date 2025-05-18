@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { ResourceStats, VMInfo } from '../shared/constants';
+import { debug } from '../shared/utils';
 
 /**
  * VMInstanceWindow class for the VM instance window
@@ -61,11 +62,11 @@ class VMInstanceWindow {
       };
 
       this.elements.streamViewer.onerror = error => {
-        console.error('Stream viewer error:', error);
+        debug.error('Stream viewer error:', error);
         this.appendToConsole('Failed to load noVNC viewer', 'error');
       };
     } catch (error) {
-      console.error('Failed to setup stream viewer:', error);
+      debug.error('Failed to setup stream viewer:', error);
       this.appendToConsole(`Failed to setup stream: ${error}`, 'error');
     }
   }
@@ -75,7 +76,7 @@ class VMInstanceWindow {
    */
   private initializeEventListeners() {
     ipcRenderer.on('render-vm-instance', (_, data: VMInfo) => {
-      console.log('Received render-vm-instance event:', data);
+      debug.log('Received render-vm-instance event:', data);
 
       // Set VM data
       this.vmId = data.id;
