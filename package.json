@@ -17,7 +17,10 @@
   "keywords": [
     "electron",
     "scrapybara",
-    "vm-management"
+    "vm-management",
+    "computer-use",
+    "claude-3-7-sonnet-20250219",
+    "anthropic"
   ],
   "author": "Ayush Shah",
   "devDependencies": {
