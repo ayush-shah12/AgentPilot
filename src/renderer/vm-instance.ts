@@ -92,13 +92,13 @@ class VMInstanceWindow {
       this.startUptimeCounter();
 
       // logging to this instance's console
-      this.appendToConsole(`VM Instance "${data.name}" initialized`, 'info');
-      this.appendToConsole(`Stream URL: ${data.streamURL}`, 'info');
+      this.appendToConsole(`VM Instance "${data.name}" initialized`, 'system');
+      // this.appendToConsole(`Stream URL: ${data.streamURL}`, 'system');
     });
 
     ipcRenderer.on('command-response', (_, response: any) => {
       if (response.success) {
-        this.appendToConsole(response.result || 'Command executed successfully');
+        this.appendToConsole(response.result || 'Command executed successfully', 'system');
       } else {
         this.appendToConsole(`Error: ${response.error}`, 'error');
       }
@@ -116,12 +116,20 @@ class VMInstanceWindow {
       const { step } = data;
       
       if (step.text) {
-        this.appendToConsole(`[Step] ${step.text}`, 'info');
+        // check final step (no tool calls and not waiting for more steps)
+        const isFinalStep = (!step.toolCalls || step.toolCalls.length === 0) && 
+                             step.finishReason === 'stop';
+        
+        this.appendToConsole(`${step.text}`, isFinalStep ? 'agent-final' : 'agent');
       }
     });
     
     ipcRenderer.on('act-status-update', (_, data: any) => {
       this.updateActStatus(data.actInProgress);
+    });
+
+    ipcRenderer.on('act-error', (_, data: any) => {
+      this.appendToConsole(`Error: ${data.error}`, 'error');
     });
 
     this.elements.sendCommand.addEventListener('click', () => this.sendCommand());
@@ -156,12 +164,12 @@ class VMInstanceWindow {
       this.elements.sendCommand.setAttribute('disabled', 'disabled');
       this.elements.sendCommand.classList.add('disabled');
       this.elements.commandInput.setAttribute('disabled', 'disabled');
-      this.appendToConsole('Command processing in progress, please wait...', 'info');
+      this.appendToConsole('Command processing in progress, please wait...', 'system');
     } else {
       this.elements.sendCommand.removeAttribute('disabled');
       this.elements.sendCommand.classList.remove('disabled');
       this.elements.commandInput.removeAttribute('disabled');
-      this.appendToConsole('Ready for next command', 'info');
+      this.appendToConsole('Ready for next command', 'system');
     }
   }
 
@@ -177,7 +185,7 @@ class VMInstanceWindow {
     const command = this.elements.commandInput.value.trim();
     if (!command) return;
 
-    this.appendToConsole(`> ${command}`, 'command');
+    this.appendToConsole(`${command}`, 'command');
 
     ipcRenderer.send('vm-command', {
       vmId: this.vmId,
@@ -238,14 +246,32 @@ class VMInstanceWindow {
    * @param message - The message to append
    * @param type - The type of message
    */
-  private appendToConsole(message: string, type: 'command' | 'info' | 'error' = 'info') {
+  private appendToConsole(message: string, type: 'command' | 'system' | 'agent' | 'agent-final' | 'error') {
     const messageElement = document.createElement('div');
     messageElement.className = `console-message ${type}`;
-    messageElement.textContent = message;
+    
+    // Add icons or prefixes to each line based on type
+    let prefix = '';
+    switch(type) {
+      case 'system': prefix = '[SYSTEM] 🖥️ '; break;
+      case 'command': prefix = '[USER] > '; break;
+      case 'agent': prefix = '[AGENT] 🤖 '; break;
+      case 'agent-final': prefix = '[AGENT ANSWER] ✅ '; break;
+      case 'error': prefix = '[ERROR] ❌ '; break;
+    }
+    
+    messageElement.textContent = prefix + message;
     this.elements.consoleOutput.appendChild(messageElement);
-
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
   }
+  // private appendToConsole(message: string, type: 'command' | 'info' | 'error' = 'info') {
+  //   const messageElement = document.createElement('div');
+  //   messageElement.className = `console-message ${type}`;
+  //   messageElement.textContent = message;
+  //   this.elements.consoleOutput.appendChild(messageElement);
+
+  //   this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
+  // }
 
   /**
    * Starts the uptime counter

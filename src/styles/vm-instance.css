@@ -134,13 +134,13 @@
 }
 
 .status-badge {
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
   display: inline-block;
-  text-align: center;
-  min-width: 80px;
+  text-align: left;
+  width: fit-content;
 }
 
 .status-badge.running {

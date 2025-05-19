@@ -318,9 +318,9 @@ class ScrapyPilotApp {
               
               this.sendToVM(vmId, 'act-status-update', { actInProgress: false });
             } catch (error) {
-              debug.error('Error sending command to VM:');
-              
-              this.sendToVM(vmId, 'act-status-update', { actInProgress: false });
+              debug.error('Error sending command to VM:', error);
+              this.sendToVM(vmId, 'act-error', { error: error });
+              this.sendToVM(vmId, 'act-status-update', { actInProgress: false });              
             }
             break;
           case 'pause':
