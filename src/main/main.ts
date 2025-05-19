@@ -6,7 +6,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 
 import { ScrapyPilot } from '../api/scrapypilot';
 import { VMInfo } from '../shared/constants';
-import { isDev, debug } from '../shared/utils';
+import { debug, isDev } from '../shared/utils';
 
 interface VMWindow {
   /**
@@ -190,6 +190,17 @@ class ScrapyPilotApp {
       require('@electron/remote/main').enable(vmWindow.webContents);
 
       const pilot = new ScrapyPilot();
+      
+      // Set up the onStep callback to relay step information to the VM UI
+      pilot.setOnStep(((step) => {
+        if (vmWindow && !vmWindow.isDestroyed()) {
+          this.sendToVM(vmId, 'step-update', {
+            step: step,
+            actInProgress: true
+          });
+        }
+      }));
+      
       const streamURL = await pilot.init();
 
       if (!streamURL) {
@@ -273,7 +284,7 @@ class ScrapyPilotApp {
    * Establishes all IPC communication channels between
    * main process and renderer processes
    */
-  private setupIpcHandlers() {
+  private async setupIpcHandlers() {
     debug.log('Setting up IPC handlers...');
 
     // create a new VM instance
@@ -293,24 +304,35 @@ class ScrapyPilotApp {
     });
 
     // handle vm commands (stop, pause, resume, prompt)
-    ipcMain.on('vm-command', (_, { vmId, command, data }) => {
+    ipcMain.on('vm-command', async (_, { vmId, command, data }) => {
       debug.log('Received vm-command:', { vmId, command, data });
       const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
       if (vmWindow) {
         switch (command) {
-          case 'send-command':
-            // vmWindow.pilot.sendCommand(data);
+          case 'act':
+            debug.log('Sending command to VM:', data);
+            try {
+              this.sendToVM(vmId, 'act-status-update', { actInProgress: true });
+              
+              await vmWindow.pilot.act(data.command);
+              
+              this.sendToVM(vmId, 'act-status-update', { actInProgress: false });
+            } catch (error) {
+              debug.error('Error sending command to VM:', error);
+              this.sendToVM(vmId, 'act-error', { error: error });
+              this.sendToVM(vmId, 'act-status-update', { actInProgress: false });              
+            }
             break;
           case 'pause':
-            vmWindow.pilot.pause();
+            await vmWindow.pilot.pause();
             this.updateInstanceStatus(vmId, 'paused');
             break;
           case 'resume':
-            vmWindow.pilot.resume();
+            await vmWindow.pilot.resume();
             this.updateInstanceStatus(vmId, 'running');
             break;
           case 'stop': // stop is equivalent to deleting the VM instance
-            vmWindow.window.destroy();
+            await vmWindow.window.destroy();
             this.updateInstanceStatus(vmId, 'stopped');
             break;
         }

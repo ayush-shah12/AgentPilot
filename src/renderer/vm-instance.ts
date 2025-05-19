@@ -11,6 +11,7 @@ class VMInstanceWindow {
   private status: string = 'initializing';
   private startTime: Date | null = null;
   private uptimeInterval: NodeJS.Timeout | null = null;
+  private actInProgress: boolean = false;
   private elements: {
     vmId: HTMLElement;
     vmName: HTMLElement;
@@ -58,16 +59,14 @@ class VMInstanceWindow {
       this.elements.streamViewer.src = streamURL;
 
       this.elements.streamViewer.onload = () => {
-        this.appendToConsole('noVNC viewer loaded successfully', 'info');
+        debug.log('noVNC viewer loaded successfully');
       };
 
       this.elements.streamViewer.onerror = error => {
         debug.error('Stream viewer error:', error);
-        this.appendToConsole('Failed to load noVNC viewer', 'error');
       };
     } catch (error) {
       debug.error('Failed to setup stream viewer:', error);
-      this.appendToConsole(`Failed to setup stream: ${error}`, 'error');
     }
   }
 
@@ -93,13 +92,13 @@ class VMInstanceWindow {
       this.startUptimeCounter();
 
       // logging to this instance's console
-      this.appendToConsole(`VM Instance "${data.name}" initialized`, 'info');
-      this.appendToConsole(`Stream URL: ${data.streamURL}`, 'info');
+      this.appendToConsole(`VM Instance "${data.name}" initialized`, 'system');
+      // this.appendToConsole(`Stream URL: ${data.streamURL}`, 'system');
     });
 
     ipcRenderer.on('command-response', (_, response: any) => {
       if (response.success) {
-        this.appendToConsole(response.result || 'Command executed successfully');
+        this.appendToConsole(response.result || 'Command executed successfully', 'system');
       } else {
         this.appendToConsole(`Error: ${response.error}`, 'error');
       }
@@ -111,6 +110,26 @@ class VMInstanceWindow {
 
     ipcRenderer.on('status-update', (_, status: string) => {
       this.updateStatus(status);
+    });
+
+    ipcRenderer.on('step-update', (_, data: any) => {
+      const { step } = data;
+      
+      if (step.text) {
+        // check final step (no tool calls and not waiting for more steps)
+        const isFinalStep = (!step.toolCalls || step.toolCalls.length === 0) && 
+                             step.finishReason === 'stop';
+        
+        this.appendToConsole(`${step.text}`, isFinalStep ? 'agent-final' : 'agent');
+      }
+    });
+    
+    ipcRenderer.on('act-status-update', (_, data: any) => {
+      this.updateActStatus(data.actInProgress);
+    });
+
+    ipcRenderer.on('act-error', (_, data: any) => {
+      this.appendToConsole(`Error: ${data.error}`, 'error');
     });
 
     this.elements.sendCommand.addEventListener('click', () => this.sendCommand());
@@ -135,13 +154,38 @@ class VMInstanceWindow {
   }
 
   /**
+   * Updates the act in progress status and UI
+   * @param inProgress - Whether an act is in progress
+   */
+  private updateActStatus(inProgress: boolean) {
+    this.actInProgress = inProgress;
+    
+    if (inProgress) {
+      this.elements.sendCommand.setAttribute('disabled', 'disabled');
+      this.elements.sendCommand.classList.add('disabled');
+      this.elements.commandInput.setAttribute('disabled', 'disabled');
+      this.appendToConsole('Command processing in progress, please wait...', 'system');
+    } else {
+      this.elements.sendCommand.removeAttribute('disabled');
+      this.elements.sendCommand.classList.remove('disabled');
+      this.elements.commandInput.removeAttribute('disabled');
+      this.appendToConsole('Ready for next command', 'system');
+    }
+  }
+
+  /**
    * Sends a command to the VM instance
    */
   private sendCommand() {
+    if (this.actInProgress) {
+      this.appendToConsole('Cannot send command: Another command is already being processed', 'error');
+      return;
+    }
+
     const command = this.elements.commandInput.value.trim();
     if (!command) return;
 
-    this.appendToConsole(`> ${command}`, 'command');
+    this.appendToConsole(`${command}`, 'command');
 
     ipcRenderer.send('vm-command', {
       vmId: this.vmId,
@@ -202,12 +246,22 @@ class VMInstanceWindow {
    * @param message - The message to append
    * @param type - The type of message
    */
-  private appendToConsole(message: string, type: 'command' | 'info' | 'error' = 'info') {
+  private appendToConsole(message: string, type: 'command' | 'system' | 'agent' | 'agent-final' | 'error') {
     const messageElement = document.createElement('div');
     messageElement.className = `console-message ${type}`;
-    messageElement.textContent = message;
+    
+    // Add icons or prefixes to each line based on type
+    let prefix = '';
+    switch(type) {
+      case 'system': prefix = '[SYSTEM] 🖥️ '; break;
+      case 'command': prefix = '[USER] > '; break;
+      case 'agent': prefix = '[AGENT] 🤖 '; break;
+      case 'agent-final': prefix = '[AGENT ANSWER] ✅ '; break;
+      case 'error': prefix = '[ERROR] ❌ '; break;
+    }
+    
+    messageElement.textContent = prefix + message;
     this.elements.consoleOutput.appendChild(messageElement);
-
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
   }
 
