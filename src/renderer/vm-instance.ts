@@ -264,14 +264,6 @@ class VMInstanceWindow {
     this.elements.consoleOutput.appendChild(messageElement);
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
   }
-  // private appendToConsole(message: string, type: 'command' | 'info' | 'error' = 'info') {
-  //   const messageElement = document.createElement('div');
-  //   messageElement.className = `console-message ${type}`;
-  //   messageElement.textContent = message;
-  //   this.elements.consoleOutput.appendChild(messageElement);
-
-  //   this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
-  // }
 
   /**
    * Starts the uptime counter
