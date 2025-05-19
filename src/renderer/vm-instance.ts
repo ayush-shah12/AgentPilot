@@ -11,6 +11,7 @@ class VMInstanceWindow {
   private status: string = 'initializing';
   private startTime: Date | null = null;
   private uptimeInterval: NodeJS.Timeout | null = null;
+  private actInProgress: boolean = false;
   private elements: {
     vmId: HTMLElement;
     vmName: HTMLElement;
@@ -58,16 +59,14 @@ class VMInstanceWindow {
       this.elements.streamViewer.src = streamURL;
 
       this.elements.streamViewer.onload = () => {
-        this.appendToConsole('noVNC viewer loaded successfully', 'info');
+        debug.log('noVNC viewer loaded successfully');
       };
 
       this.elements.streamViewer.onerror = error => {
         debug.error('Stream viewer error:', error);
-        this.appendToConsole('Failed to load noVNC viewer', 'error');
       };
     } catch (error) {
       debug.error('Failed to setup stream viewer:', error);
-      this.appendToConsole(`Failed to setup stream: ${error}`, 'error');
     }
   }
 
@@ -113,6 +112,18 @@ class VMInstanceWindow {
       this.updateStatus(status);
     });
 
+    ipcRenderer.on('step-update', (_, data: any) => {
+      const { step } = data;
+      
+      if (step.text) {
+        this.appendToConsole(`[Step] ${step.text}`, 'info');
+      }
+    });
+    
+    ipcRenderer.on('act-status-update', (_, data: any) => {
+      this.updateActStatus(data.actInProgress);
+    });
+
     this.elements.sendCommand.addEventListener('click', () => this.sendCommand());
     this.elements.commandInput.addEventListener('keypress', e => {
       if (e.key === 'Enter') {
@@ -135,9 +146,34 @@ class VMInstanceWindow {
   }
 
   /**
+   * Updates the act in progress status and UI
+   * @param inProgress - Whether an act is in progress
+   */
+  private updateActStatus(inProgress: boolean) {
+    this.actInProgress = inProgress;
+    
+    if (inProgress) {
+      this.elements.sendCommand.setAttribute('disabled', 'disabled');
+      this.elements.sendCommand.classList.add('disabled');
+      this.elements.commandInput.setAttribute('disabled', 'disabled');
+      this.appendToConsole('Command processing in progress, please wait...', 'info');
+    } else {
+      this.elements.sendCommand.removeAttribute('disabled');
+      this.elements.sendCommand.classList.remove('disabled');
+      this.elements.commandInput.removeAttribute('disabled');
+      this.appendToConsole('Ready for next command', 'info');
+    }
+  }
+
+  /**
    * Sends a command to the VM instance
    */
   private sendCommand() {
+    if (this.actInProgress) {
+      this.appendToConsole('Cannot send command: Another command is already being processed', 'error');
+      return;
+    }
+
     const command = this.elements.commandInput.value.trim();
     if (!command) return;
 
