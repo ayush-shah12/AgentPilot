@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { AVAILABLE_MODELS } from '../api/scrapypilot';
+import { AVAILABLE_MODELS } from '../api/agentpilot';
 import { VMInfo } from '../shared/constants';
 import { debug } from '../shared/utils';
 
@@ -63,12 +63,12 @@ class ManagerWindow {
       const modelName = this.elements.modelName.value;
 
       // send to main process
-      ipcRenderer.send('request-create-vm', { 
+      ipcRenderer.send('request-create-vm', {
         name: vmName,
         modelConfig: {
           provider: modelProvider,
-          name: modelName
-        }
+          name: modelName,
+        },
       });
 
       this.elements.vmNameInput.value = '';
@@ -101,9 +101,9 @@ class ManagerWindow {
   private updateModelOptions() {
     const provider = this.elements.modelProvider.value;
     const modelSelect = this.elements.modelName;
-    
+
     modelSelect.innerHTML = '';
-    
+
     if (provider === 'anthropic') {
       AVAILABLE_MODELS.anthropic.forEach(modelName => {
         const option = document.createElement('option');

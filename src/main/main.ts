@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { app, BrowserWindow, ipcMain } from 'electron';
 
-import { ScrapyPilot } from '../api/scrapypilot';
+import { AgentPilot } from '../api/agentpilot';
+
 import { VMInfo } from '../shared/constants';
 import { debug, isDev } from '../shared/utils';
 
@@ -20,14 +21,14 @@ interface VMWindow {
   internal_id: string;
 
   /**
-   * ScrapyPilot instance ID
+   * AgentPilot instance ID
    */
   instance_id: string | null;
 
   /**
-   * ScrapyPilot instance
+   * AgentPilot instance
    */
-  pilot: ScrapyPilot;
+  pilot: AgentPilot;
 
   /**
    * VM information used for display and communication
@@ -36,9 +37,9 @@ interface VMWindow {
 }
 
 /**
- * Main application class for ScrapyPilot Application
+ * Main application class for AgentPilot Application
  */
-class ScrapyPilotApp {
+class AgentPilotApp {
   private managerWindow: BrowserWindow | null = null;
 
   private vmWindows: VMWindow[] = [];
@@ -167,7 +168,7 @@ class ScrapyPilotApp {
 
   /*
    * Creates a new VM instance with the specified name
-   * Initializes ScrapyPilot, opens window, and establishes communication
+   * Initializes AgentPilot, opens window, and establishes communication
    */
   private async createVMInstance(name: string, modelConfig?: any) {
     try {
@@ -190,18 +191,18 @@ class ScrapyPilotApp {
 
       require('@electron/remote/main').enable(vmWindow.webContents);
 
-      const pilot = new ScrapyPilot(modelConfig);
-      
+      const pilot = new AgentPilot(modelConfig);
+
       // Set up the onStep callback to relay step information to the VM UI
-      pilot.setOnStep(((step) => {
+      pilot.setOnStep(step => {
         if (vmWindow && !vmWindow.isDestroyed()) {
           this.sendToVM(vmId, 'step-update', {
             step: step,
-            actInProgress: true
+            actInProgress: true,
           });
         }
-      }));
-      
+      });
+
       const streamURL = await pilot.init();
 
       if (!streamURL) {
@@ -291,7 +292,8 @@ class ScrapyPilotApp {
     // create a new VM instance
     ipcMain.on('request-create-vm', (_, data) => {
       const vmName = typeof data === 'object' && data.name ? data.name : String(data);
-      const modelConfig = typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
+      const modelConfig =
+        typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
       this.createVMInstance(vmName, modelConfig);
     });
 
@@ -315,14 +317,14 @@ class ScrapyPilotApp {
             debug.log('Sending command to VM:', data);
             try {
               this.sendToVM(vmId, 'act-status-update', { actInProgress: true });
-              
+
               await vmWindow.pilot.act(data.command);
-              
+
               this.sendToVM(vmId, 'act-status-update', { actInProgress: false });
             } catch (error) {
               debug.error('Error sending command to VM:', error);
               this.sendToVM(vmId, 'act-error', { error: error });
-              this.sendToVM(vmId, 'act-status-update', { actInProgress: false });              
+              this.sendToVM(vmId, 'act-status-update', { actInProgress: false });
             }
             break;
           case 'pause':
@@ -388,4 +390,4 @@ class ScrapyPilotApp {
   }
 }
 
-new ScrapyPilotApp();
+new AgentPilotApp();

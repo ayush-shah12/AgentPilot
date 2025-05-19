@@ -16,14 +16,12 @@ export const AVAILABLE_MODELS = {
   anthropic: [
     'claude-3-7-sonnet-20250219',
     'claude-3-7-sonnet-20250219-thinking',
-    'claude-3-5-sonnet-20241022'
+    'claude-3-5-sonnet-20241022',
   ],
-  openai: [
-    'computer-use-preview'
-  ]
+  openai: ['computer-use-preview'],
 };
 
-export class ScrapyPilot {
+export class AgentPilot {
   private client: ScrapybaraClient;
   private model: Scrapybara.Model;
   private instanceID: string | null = null;
@@ -96,23 +94,23 @@ export class ScrapyPilot {
     if (this.actInProgress) {
       return;
     }
-    
+
     this.actInProgress = true;
-    
+
     try {
       for await (const step of this.client.actStream({
         model: this.model,
         tools: this.tools,
         prompt: userInput,
         system: BROWSER_SYSTEM_PROMPT,
-        onStep: (step) => {
-          console.log("[ScrapyPilot Step]", step);
-          
+        onStep: step => {
+          console.log('[AgentPilot Step]', step);
+
           // call the provided callback to update the UI
           if (this.onStep && typeof this.onStep === 'function') {
             this.onStep(step);
           }
-        }
+        },
       })) {
       }
     } finally {
