@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import { AVAILABLE_MODELS } from '../api/scrapypilot';
 import { VMInfo } from '../shared/constants';
 import { debug } from '../shared/utils';
 
@@ -10,6 +11,8 @@ class ManagerWindow {
     vmList: HTMLElement;
     createButton: HTMLElement;
     vmNameInput: HTMLInputElement;
+    modelProvider: HTMLSelectElement;
+    modelName: HTMLSelectElement;
     instanceCount: HTMLElement;
     connectionStatus: HTMLElement;
     apiVersion: HTMLElement;
@@ -24,6 +27,8 @@ class ManagerWindow {
       vmList: document.getElementById('vm-list')!,
       createButton: document.getElementById('create-vm')!,
       vmNameInput: document.getElementById('vm-name') as HTMLInputElement,
+      modelProvider: document.getElementById('model-provider') as HTMLSelectElement,
+      modelName: document.getElementById('model-name') as HTMLSelectElement,
       instanceCount: document.getElementById('instance-count')!,
       connectionStatus: document.getElementById('connection-status')!,
       apiVersion: document.getElementById('api-version')!,
@@ -41,6 +46,11 @@ class ManagerWindow {
   private initializeEventListeners() {
     debug.log('Initializing event listeners...');
 
+    // Handle model provider change to update model options
+    this.elements.modelProvider.addEventListener('change', () => {
+      this.updateModelOptions();
+    });
+
     this.elements.createButton.addEventListener('click', () => {
       debug.log('Create button clicked!');
       const vmName = this.elements.vmNameInput.value.trim();
@@ -49,8 +59,17 @@ class ManagerWindow {
         return;
       }
 
+      const modelProvider = this.elements.modelProvider.value;
+      const modelName = this.elements.modelName.value;
+
       // send to main process
-      ipcRenderer.send('request-create-vm', { name: vmName });
+      ipcRenderer.send('request-create-vm', { 
+        name: vmName,
+        modelConfig: {
+          provider: modelProvider,
+          name: modelName
+        }
+      });
 
       this.elements.vmNameInput.value = '';
     });
@@ -71,6 +90,51 @@ class ManagerWindow {
       debug.log('Received VM status update:', data);
       this.updateVMStatus(data.vmId, data.status);
     });
+
+    // Initialize model options based on default provider
+    this.updateModelOptions();
+  }
+
+  /**
+   * Updates model options based on selected provider
+   */
+  private updateModelOptions() {
+    const provider = this.elements.modelProvider.value;
+    const modelSelect = this.elements.modelName;
+    
+    modelSelect.innerHTML = '';
+    
+    if (provider === 'anthropic') {
+      AVAILABLE_MODELS.anthropic.forEach(modelName => {
+        const option = document.createElement('option');
+        option.value = modelName;
+        option.textContent = this.formatModelName(modelName);
+        modelSelect.appendChild(option);
+      });
+    } else if (provider === 'openai') {
+      AVAILABLE_MODELS.openai.forEach(modelName => {
+        const option = document.createElement('option');
+        option.value = modelName;
+        option.textContent = this.formatModelName(modelName);
+        modelSelect.appendChild(option);
+      });
+    }
+  }
+
+  /**
+   * Format model name for display
+   */
+  private formatModelName(name: string): string {
+    if (name === 'claude-3-7-sonnet-20250219') {
+      return 'Claude 3.7 Sonnet';
+    } else if (name === 'claude-3-7-sonnet-20250219-thinking') {
+      return 'Claude 3.7 Sonnet (with thinking)';
+    } else if (name === 'claude-3-5-sonnet-20241022') {
+      return 'Claude 3.5 Sonnet';
+    } else if (name === 'computer-use-preview') {
+      return 'GPT-4o Computer Use Preview';
+    }
+    return name;
   }
 
   /**

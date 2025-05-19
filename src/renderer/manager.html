@@ -28,6 +28,21 @@
                 class="input-field"
                 autocomplete="off"
               />
+              <div class="form-field">
+                <label for="model-provider">Provider:</label>
+                <select id="model-provider" class="select-field">
+                  <option value="anthropic">Anthropic</option>
+                  <option value="openai">OpenAI</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="model-name">Model:</label>
+                <select id="model-name" class="select-field">
+                  <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</option>
+                  <option value="claude-3-7-sonnet-20250219-thinking">Claude 3.7 Sonnet (with thinking)</option>
+                  <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                </select>
+              </div>
               <button id="create-vm" class="btn btn-primary">Create VM Instance</button>
             </div>
           </div>
