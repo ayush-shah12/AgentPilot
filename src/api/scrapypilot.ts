@@ -7,6 +7,22 @@ import { chromium } from 'playwright';
 
 import dotenv from 'dotenv';
 
+export interface ModelConfig {
+  provider: 'anthropic' | 'openai';
+  name: string;
+}
+
+export const AVAILABLE_MODELS = {
+  anthropic: [
+    'claude-3-7-sonnet-20250219',
+    'claude-3-7-sonnet-20250219-thinking',
+    'claude-3-5-sonnet-20241022'
+  ],
+  openai: [
+    'computer-use-preview'
+  ]
+};
+
 export class ScrapyPilot {
   private client: ScrapybaraClient;
   private model: Scrapybara.Model;
@@ -18,20 +34,44 @@ export class ScrapyPilot {
   private actInProgress: boolean = false; // mutex to prevent concurrent act() calls
   private onStep: ((step: any) => void) | null = null;
 
-  constructor() {
+  constructor(modelConfig?: ModelConfig) {
     // initialize scrapybara client and anthropic model
-
     dotenv.config();
 
     this.client = new ScrapybaraClient({
       apiKey: process.env.SCRAPYBARA_API_KEY,
     });
 
-    this.model = {
-      provider: 'anthropic',
-      name: 'claude-3-7-sonnet-20250219',
-      apiKey: process.env.ANTHROPIC_API_KEY || '',
-    };
+    // Use the provided model configuration or default to Claude 3.7 Sonnet
+    if (modelConfig) {
+      if (modelConfig.provider === 'anthropic') {
+        this.model = {
+          provider: 'anthropic',
+          name: modelConfig.name,
+          apiKey: process.env.ANTHROPIC_API_KEY || '',
+        };
+      } else if (modelConfig.provider === 'openai') {
+        this.model = {
+          provider: 'openai',
+          name: modelConfig.name,
+          apiKey: process.env.OPENAI_API_KEY || '',
+        };
+      } else {
+        // Default to Claude 3.7 Sonnet if invalid provider
+        this.model = {
+          provider: 'anthropic',
+          name: 'claude-3-7-sonnet-20250219',
+          apiKey: process.env.ANTHROPIC_API_KEY || '',
+        };
+      }
+    } else {
+      // Default model if none provided
+      this.model = {
+        provider: 'anthropic',
+        name: 'claude-3-7-sonnet-20250219',
+        apiKey: process.env.ANTHROPIC_API_KEY || '',
+      };
+    }
   }
 
   async init(): Promise<string | null> {

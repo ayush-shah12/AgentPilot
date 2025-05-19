@@ -169,9 +169,10 @@ class ScrapyPilotApp {
    * Creates a new VM instance with the specified name
    * Initializes ScrapyPilot, opens window, and establishes communication
    */
-  private async createVMInstance(name: string) {
+  private async createVMInstance(name: string, modelConfig?: any) {
     try {
       debug.log('Creating VM instance with name:', name);
+      debug.log('Using model configuration:', modelConfig);
 
       const vmWindow = new BrowserWindow({
         width: 800,
@@ -189,7 +190,7 @@ class ScrapyPilotApp {
 
       require('@electron/remote/main').enable(vmWindow.webContents);
 
-      const pilot = new ScrapyPilot();
+      const pilot = new ScrapyPilot(modelConfig);
       
       // Set up the onStep callback to relay step information to the VM UI
       pilot.setOnStep(((step) => {
@@ -290,7 +291,8 @@ class ScrapyPilotApp {
     // create a new VM instance
     ipcMain.on('request-create-vm', (_, data) => {
       const vmName = typeof data === 'object' && data.name ? data.name : String(data);
-      this.createVMInstance(vmName);
+      const modelConfig = typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
+      this.createVMInstance(vmName, modelConfig);
     });
 
     // open the manager window (from a VM instance window)
