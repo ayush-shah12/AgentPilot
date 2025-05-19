@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>ScrapyPilot Manager</title>
+    <title>AgentPilot Manager</title>
     <link rel="stylesheet" href="../styles/main.css" />
     <link rel="stylesheet" href="../styles/manager.css" />
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'" />
@@ -9,10 +9,14 @@
   <body>
     <div class="app-container">
       <header class="app-header">
-        <h1>ScrapyPilot Manager</h1>
+        <h1>AgentPilot Manager</h1>
         <div class="header-controls">
-          <span id="instance-count" class="instance-counter">VM Instances: 0</span> 
-          <span><button id="settings-button" class="btn btn-icon-settings" title="Settings">⚙️</button></span>
+          <span id="instance-count" class="instance-counter">Active VM Instances: 0</span>
+          <span
+            ><button id="settings-button" class="btn btn-icon-settings" title="Settings">
+              ⚙️
+            </button></span
+          >
         </div>
       </header>
 
@@ -39,7 +43,9 @@
                 <label for="model-name">Model:</label>
                 <select id="model-name" class="select-field">
                   <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</option>
-                  <option value="claude-3-7-sonnet-20250219-thinking">Claude 3.7 Sonnet (with thinking)</option>
+                  <option value="claude-3-7-sonnet-20250219-thinking">
+                    Claude 3.7 Sonnet (with thinking)
+                  </option>
                   <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
                 </select>
               </div>

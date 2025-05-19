@@ -114,16 +114,16 @@ class VMInstanceWindow {
 
     ipcRenderer.on('step-update', (_, data: any) => {
       const { step } = data;
-      
+
       if (step.text) {
         // check final step (no tool calls and not waiting for more steps)
-        const isFinalStep = (!step.toolCalls || step.toolCalls.length === 0) && 
-                             step.finishReason === 'stop';
-        
+        const isFinalStep =
+          (!step.toolCalls || step.toolCalls.length === 0) && step.finishReason === 'stop';
+
         this.appendToConsole(`${step.text}`, isFinalStep ? 'agent-final' : 'agent');
       }
     });
-    
+
     ipcRenderer.on('act-status-update', (_, data: any) => {
       this.updateActStatus(data.actInProgress);
     });
@@ -159,7 +159,7 @@ class VMInstanceWindow {
    */
   private updateActStatus(inProgress: boolean) {
     this.actInProgress = inProgress;
-    
+
     if (inProgress) {
       this.elements.sendCommand.setAttribute('disabled', 'disabled');
       this.elements.sendCommand.classList.add('disabled');
@@ -178,7 +178,10 @@ class VMInstanceWindow {
    */
   private sendCommand() {
     if (this.actInProgress) {
-      this.appendToConsole('Cannot send command: Another command is already being processed', 'error');
+      this.appendToConsole(
+        'Cannot send command: Another command is already being processed',
+        'error'
+      );
       return;
     }
 
@@ -246,20 +249,33 @@ class VMInstanceWindow {
    * @param message - The message to append
    * @param type - The type of message
    */
-  private appendToConsole(message: string, type: 'command' | 'system' | 'agent' | 'agent-final' | 'error') {
+  private appendToConsole(
+    message: string,
+    type: 'command' | 'system' | 'agent' | 'agent-final' | 'error'
+  ) {
     const messageElement = document.createElement('div');
     messageElement.className = `console-message ${type}`;
-    
+
     // Add icons or prefixes to each line based on type
     let prefix = '';
-    switch(type) {
-      case 'system': prefix = '[SYSTEM] 🖥️ '; break;
-      case 'command': prefix = '[USER] > '; break;
-      case 'agent': prefix = '[AGENT] 🤖 '; break;
-      case 'agent-final': prefix = '[AGENT ANSWER] ✅ '; break;
-      case 'error': prefix = '[ERROR] ❌ '; break;
+    switch (type) {
+      case 'system':
+        prefix = '[SYSTEM] 🖥️ ';
+        break;
+      case 'command':
+        prefix = '[USER] > ';
+        break;
+      case 'agent':
+        prefix = '[AGENT] 🤖 ';
+        break;
+      case 'agent-final':
+        prefix = '[AGENT ANSWER] ✅ ';
+        break;
+      case 'error':
+        prefix = '[ERROR] ❌ ';
+        break;
     }
-    
+
     messageElement.textContent = prefix + message;
     this.elements.consoleOutput.appendChild(messageElement);
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;

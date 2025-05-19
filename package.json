@@ -1,7 +1,7 @@
 {
-  "name": "scrapypilot",
+  "name": "agentpilot",
   "version": "1.0.0",
-  "description": "Desktop application to manage and control Claude based VM instances",
+  "description": "Electron app for orchestrating virtual machines running Computer Use Agents with real-time task dispatching, monitoring, and management",
   "main": "dist/main/main.js",
   "scripts": {
     "clean": "rimraf dist build",
@@ -18,7 +18,7 @@
     "electron",
     "scrapybara",
     "vm-management",
-    "computer-use",
+    "computer-use-agents",
     "claude-3-7-sonnet-20250219",
     "anthropic"
   ],
@@ -48,8 +48,8 @@
     "uuid": "^11.1.0"
   },
   "build": {
-    "appId": "com.scrapypilot.app",
-    "productName": "ScrapyPilot",
+    "appId": "com.agentpilot.app",
+    "productName": "AgentPilot",
     "directories": {
       "output": "build"
     },

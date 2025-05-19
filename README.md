@@ -1,6 +1,7 @@
-# ScrapyPilot
+# AgentPilot
 
-A desktop application for managing and controlling VM instances with Computer Use Agents. Built with Electron and TypeScript. VMs powered by Scrapybara. 
+Electron app for orchestrating virtual machines running Computer Use Agents with real-time task dispatching, monitoring, and management. Powered through Scrapybara VM Instances.
+
 ![image](https://github.com/user-attachments/assets/01d61637-e56c-478e-ac3f-93e8cebc9801)
 
 In the image above, I prompted two different instances to simultaneously complete 2 different tasks. One was summarize the stock market for the day, the other was summarizing a research topic!
@@ -8,13 +9,16 @@ In the image above, I prompted two different instances to simultaneously complet
 ## Features
 
 - **Manage Multiple VM Instances**  
-  Create, control, and monitor multiple Scrapybara virtual machine instances seamlessly from the desktop app.
+  Create, control, and monitor multiple virtual machine instances seamlessly from the desktop app.
 
 - **Interactive Console**  
   Send commands and interact directly with each VM in real-time through an intuitive console interface.
 
 - **Modern & Responsive UI**  
   Clean, minimalistic, and responsive design for smooth and pleasant user experience.
+
+- **Multiple Providers & Models**  
+  Choose from various models from providers such as OpenAI and Anthropic.
 
 ## Prerequisites
 
@@ -26,8 +30,8 @@ In the image above, I prompted two different instances to simultaneously complet
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ayush-shah12/scrapypilot.git
-cd scrapypilot
+git clone https://github.com/ayush-shah12/agentpilot.git
+cd agentpilot
 ```
 
 2. Install dependencies:
@@ -48,7 +52,7 @@ APP_ENV=development
 DEBUG=false
 
 # VM Instance Settings
-MAX_VM_INSTANCES=5
+MAX_VM_INSTANCES=25
 ```
 
 Adjust these values according to your needs and Scrapybara account settings.
@@ -89,7 +93,7 @@ This will create platform-specific installers in the `build` directory:
 ## Project Structure
 
 ```
-scrapypilot/
+agentpilot/
 ├── src/
 │   ├── main/
 │   │   ├── main.ts
@@ -99,7 +103,7 @@ scrapypilot/
 │   │   ├── vm-instance.ts
 │   │   └── vm-instance.html
 │   ├── api/
-│   │   ├── scrapypilot.ts
+│   │   ├── agentpilot.ts
 │   ├── styles/
 │   │   ├── main.css
 │   │   ├── manager.css
