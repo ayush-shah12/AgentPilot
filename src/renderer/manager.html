@@ -61,6 +61,53 @@
             </div>
           </div>
 
+          <div class="card collapsible collapsed">
+            <div class="card-header">
+              <h2>Batch Tasks</h2>
+              <button id="toggle-batch" class="btn btn-icon" title="Toggle">▼</button>
+            </div>
+            <div id="batch-content" class="card-content">
+              <div class="form-group">
+                <div class="form-field">
+                  <label for="batch-tasks">Tasks (JSON):</label>
+                  <textarea
+                    id="batch-tasks"
+                    class="input-field"
+                    rows="6"
+                    placeholder='[
+  {
+    "name": "Task 1",
+    "prompt": "Your task prompt here"
+  },
+  {
+    "name": "Task 2",
+    "prompt": "Another task prompt"
+  }
+]'
+                  ></textarea>
+                </div>
+                <div class="form-field">
+                  <label for="batch-model-provider">Provider:</label>
+                  <select id="batch-model-provider" class="select-field">
+                    <option value="anthropic">Anthropic</option>
+                    <option value="openai">OpenAI</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="batch-model-name">Model:</label>
+                  <select id="batch-model-name" class="select-field">
+                    <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</option>
+                    <option value="claude-3-7-sonnet-20250219-thinking">
+                      Claude 3.7 Sonnet (with thinking)
+                    </option>
+                    <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                  </select>
+                </div>
+                <button id="create-batch" class="btn btn-primary">Create Batch Instances</button>
+              </div>
+            </div>
+          </div>
+
           <div class="card">
             <h2>Active Instances</h2>
             <div id="vm-list" class="vm-list"></div>

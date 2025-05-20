@@ -197,3 +197,60 @@
     opacity: 1;
   }
 }
+
+.card.collapsible {
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 0.375rem;
+}
+
+/* Header Styling */
+.card.collapsible .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 1rem;
+  background-color: transparent;
+}
+
+/* Optional heading margin reset */
+.card.collapsible .card-header h2 {
+  margin: 0;
+}
+
+/* Icon rotation */
+.card.collapsible .btn-icon {
+  transition: transform 0.3s ease;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.card.collapsible.collapsed .btn-icon {
+  transform: rotate(-90deg);
+}
+
+/* Content transitions */
+.card.collapsible .card-content {
+  max-height: 1000px;
+  overflow: hidden;
+  padding: 1rem;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.card.collapsible.collapsed .card-content {
+  max-height: 0;
+  padding: 0;
+}
+
+/* Remove bg and add tighter layout when collapsed */
+.card.collapsible.collapsed .card-header {
+  background-color: transparent;
+  padding: 0.75rem 1rem;
+}
+
+/* Optional: Reduce margin when collapsed */
+.card.collapsible.collapsed {
+  margin-bottom: 1rem;
+  max-height: 100px;
+}

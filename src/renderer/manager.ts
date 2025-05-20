@@ -3,6 +3,11 @@ import { AVAILABLE_MODELS } from '../api/agentpilot';
 import { VMInfo } from '../shared/constants';
 import { debug } from '../shared/utils';
 
+interface BatchTask {
+  name: string;
+  prompt: string;
+}
+
 /**
  * ManagerWindow class for the manager window
  */
@@ -13,6 +18,12 @@ class ManagerWindow {
     vmNameInput: HTMLInputElement;
     modelProvider: HTMLSelectElement;
     modelName: HTMLSelectElement;
+    batchTasks: HTMLTextAreaElement;
+    batchModelProvider: HTMLSelectElement;
+    batchModelName: HTMLSelectElement;
+    createBatchButton: HTMLElement;
+    toggleBatchButton: HTMLElement;
+    batchCard: HTMLElement;
     instanceCount: HTMLElement;
     connectionStatus: HTMLElement;
     apiVersion: HTMLElement;
@@ -32,6 +43,12 @@ class ManagerWindow {
       vmNameInput: document.getElementById('vm-name') as HTMLInputElement,
       modelProvider: document.getElementById('model-provider') as HTMLSelectElement,
       modelName: document.getElementById('model-name') as HTMLSelectElement,
+      batchTasks: document.getElementById('batch-tasks') as HTMLTextAreaElement,
+      batchModelProvider: document.getElementById('batch-model-provider') as HTMLSelectElement,
+      batchModelName: document.getElementById('batch-model-name') as HTMLSelectElement,
+      createBatchButton: document.getElementById('create-batch')!,
+      toggleBatchButton: document.getElementById('toggle-batch')!,
+      batchCard: document.querySelector('.card.collapsible')!,
       instanceCount: document.getElementById('instance-count')!,
       connectionStatus: document.getElementById('connection-status')!,
       apiVersion: document.getElementById('api-version')!,
@@ -52,9 +69,18 @@ class ManagerWindow {
   private initializeEventListeners() {
     debug.log('Initializing event listeners...');
 
+    // Toggle batch tasks card
+    this.elements.toggleBatchButton.addEventListener('click', () => {
+      this.elements.batchCard.classList.toggle('collapsed');
+    });
+
     // Handle model provider change to update model options
     this.elements.modelProvider.addEventListener('change', () => {
-      this.updateModelOptions();
+      this.updateModelOptions(this.elements.modelProvider, this.elements.modelName);
+    });
+
+    this.elements.batchModelProvider.addEventListener('change', () => {
+      this.updateModelOptions(this.elements.batchModelProvider, this.elements.batchModelName);
     });
 
     // settings button click handler
@@ -89,6 +115,47 @@ class ManagerWindow {
       this.elements.vmNameInput.value = '';
     });
 
+    this.elements.createBatchButton.addEventListener('click', () => {
+      debug.log('Create batch button clicked!');
+      try {
+        const tasksText = this.elements.batchTasks.value.trim();
+        if (!tasksText) {
+          this.showError('Please enter tasks in JSON format');
+          return;
+        }
+
+        const tasks: BatchTask[] = JSON.parse(tasksText);
+        if (!Array.isArray(tasks) || tasks.length === 0) {
+          this.showError('Tasks must be a non-empty array');
+          return;
+        }
+
+        const modelProvider = this.elements.batchModelProvider.value;
+        const modelName = this.elements.batchModelName.value;
+
+        // Create VMs for each task
+        tasks.forEach(task => {
+          if (!task.name || !task.prompt) {
+            this.showError('Each task must have a name and prompt');
+            return;
+          }
+
+          ipcRenderer.send('request-create-vm', {
+            name: task.name,
+            modelConfig: {
+              provider: modelProvider,
+              name: modelName,
+            },
+            initialPrompt: task.prompt,
+          });
+        });
+
+        this.elements.batchTasks.value = '';
+      } catch (error) {
+        this.showError('Invalid JSON format: ' + (error as Error).message);
+      }
+    });
+
     // event listener for vm list update (creation, deletion, etc)
     ipcRenderer.on('vm-list-update', (_, vmList: VMInfo[]) => {
       this.renderVMList(vmList);
@@ -117,16 +184,15 @@ class ManagerWindow {
     });
 
     // Initialize model options based on default provider
-    this.updateModelOptions();
+    this.updateModelOptions(this.elements.modelProvider, this.elements.modelName);
+    this.updateModelOptions(this.elements.batchModelProvider, this.elements.batchModelName);
   }
 
   /**
    * Updates model options based on selected provider
    */
-  private updateModelOptions() {
-    const provider = this.elements.modelProvider.value;
-    const modelSelect = this.elements.modelName;
-
+  private updateModelOptions(providerSelect: HTMLSelectElement, modelSelect: HTMLSelectElement) {
+    const provider = providerSelect.value;
     modelSelect.innerHTML = '';
 
     if (provider === 'anthropic') {

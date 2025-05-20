@@ -226,10 +226,13 @@ class AgentPilotApp {
    * Creates a new VM instance with the specified name
    * Initializes AgentPilot, opens window, and establishes communication
    */
-  private async createVMInstance(name: string, modelConfig?: any) {
+  private async createVMInstance(name: string, modelConfig?: any, initialPrompt?: string) {
     try {
       debug.log('Creating VM instance with name:', name);
       debug.log('Using model configuration:', modelConfig);
+      if (initialPrompt) {
+        debug.log('Initial prompt:', initialPrompt);
+      }
 
       const settings = settingsStore.store;
       if (!settings.scrapybaraKey) {
@@ -312,11 +315,21 @@ class AgentPilotApp {
           streamURL: streamURL,
           status: 'running',
         };
-        this.sendToVM(vmId, 'render-vm-instance', vmData); // send to vm instance window
+        this.sendToVM(vmId, 'render-vm-instance', vmData);
+
+        if (initialPrompt) {
+          // Send command to VM
+          pilot.act(initialPrompt);
+
+          // Also log to console
+          this.sendToVM(vmId, 'command-response', {
+            success: true,
+            result: `Executing initial prompt: ${initialPrompt}`,
+          });
+        }
       }
 
       // handle the closing of the vm instance window
-      // will cleanup the pilot and remove the instance from the vmWindows array
       vmWindow.on('closed', () => {
         debug.log('VM instance closed:', vmId);
         const index = this.vmWindows.findIndex(vm => vm.internal_id === vmId);
@@ -366,9 +379,9 @@ class AgentPilotApp {
     // create a new VM instance
     ipcMain.on('request-create-vm', (_, data) => {
       const vmName = typeof data === 'object' && data.name ? data.name : String(data);
-      const modelConfig =
-        typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
-      this.createVMInstance(vmName, modelConfig);
+      const modelConfig = typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
+      const initialPrompt = typeof data === 'object' && data.initialPrompt ? data.initialPrompt : undefined;
+      this.createVMInstance(vmName, modelConfig, initialPrompt);
     });
 
     // open the manager window (from a VM instance window)
@@ -391,6 +404,10 @@ class AgentPilotApp {
     ipcMain.on('vm-command', async (_, { vmId, command, data }) => {
       debug.log('Received vm-command:', { vmId, command, data });
       const vmWindow = this.vmWindows.find(vm => vm.internal_id === vmId);
+      if (!vmWindow) {
+        debug.error('VM window not found');
+        return;
+      }
       if (vmWindow) {
         switch (command) {
           case 'act':
