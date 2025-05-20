@@ -1,6 +1,6 @@
 # AgentPilot
 
-Electron app for orchestrating virtual machines running Computer Use Agents with real-time task dispatching, monitoring, and management. Powered through Scrapybara VM Instances.
+A powerful Electron-based desktop app for orchestrating virtual machines running computer use agents — enabling real-time task dispatching, monitoring, and control. Built on top of Scrapybara VM instances.
 
 ![image](https://github.com/user-attachments/assets/01d61637-e56c-478e-ac3f-93e8cebc9801)
 
@@ -8,17 +8,56 @@ In the image above, I prompted two different instances to simultaneously complet
 
 ## Features
 
-- **Manage Multiple VM Instances**  
-  Create, control, and monitor multiple virtual machine instances seamlessly from the desktop app.
+- **Orchestrate Multiple VM Instances**  
+  Launch, manage, and monitor multiple virtual machines running computer use agents effortlessly — all from a single desktop interface. Built to scale with the Batch Execution Mode (more on that below).
 
-- **Interactive Console**  
-  Send commands and interact directly with each VM in real-time through an intuitive console interface.
+- **Live Interactive Console**  
+  Actively send new tasks, fine-tune behavior, or troubleshoot in real-time through a built-in terminal connected to each agent’s VM.
 
-- **Modern & Responsive UI**  
-  Clean, minimalistic, and responsive design for smooth and pleasant user experience.
+- **Real-Time Agent Overlay & Console History**  
+  Visual overlay displays the agent's actions and live feedback as it navigates, paired with a scrollable console that logs the full interaction history for each session.
 
-- **Multiple Providers & Models**  
-  Choose from various models from providers such as OpenAI and Anthropic.
+- **Sleek & Responsive UI**  
+  Minimal, modern design focused on speed, usability, and clarity.
+
+- **Flexible Model & Provider Support**  
+  Choose from multiple AI computer use models across providers like OpenAI and Anthropic — switch easily depending on the task.
+
+## Batch Execution
+
+AgentPilot also supports **Batch Mode** – enabling you to spin up a fleet of browser instances — each assigned its own unique task — all with a single click.
+
+### How It Works
+
+You define a list of tasks — each with a name and a prompt — and AgentPilot automatically spins up a VM for each one, running a dedicated computer use agent of your choice, to execute the task.
+```json
+[
+  {
+    "name": "Explore Apple Products",
+    "prompt": "Go to apple.com and browse the latest product releases and features for each product."
+  }
+  {
+    "name": "Browse TechCrunch",
+    "prompt": "Go to techcrunch.com and scroll through the latest articles on startups and technology. Open a few interesting stories and skim through them."
+  },
+  {
+    "name": "Search Amazon for Mechanical Keyboards",
+    "prompt": "Go to amazon.com and search for 'mechanical keyboards'. Scroll through the listings, open a product with RGB lighting, and scroll through images and reviews."
+  },
+  {
+    "name": "Explore Airbnb Listings",
+    "prompt": "Go to airbnb.com and scroll through the listings. Click on a few to view photos and details like pricing and amenities."
+  },
+  {
+    "name": "Compare Laptops on Newegg",
+    "prompt": "Go to newegg.com and search for 'laptops'. Scroll through the product list and open a few products to view details, reccommend a laptop."
+  }
+]
+```
+
+### In Action
+![final-ezgif com-video-to-gif-converter (2)](https://github.com/user-attachments/assets/79944f4e-ad97-4a45-a32d-fd7bc34d7ac4)
+
 
 ## Prerequisites
 
@@ -81,34 +120,11 @@ This will create platform-specific installers in the `build` directory:
 - macOS: DMG installer (.dmg)
 - Linux: AppImage (.AppImage)
 
-## Project Structure
-
-```
-agentpilot/
-├── src/
-│   ├── main/
-│   │   ├── main.ts
-│   ├── renderer/
-│   │   ├── manager.ts
-│   │   ├── manager.html
-│   │   ├── vm-instance.ts
-│   │   └── vm-instance.html
-│   ├── api/
-│   │   ├── agentpilot.ts
-│   ├── styles/
-│   │   ├── main.css
-│   │   ├── manager.css
-│   │   └── vm-instance.css
-│   └── shared/
-├── dist/
-├── build/
-└── package.json
-```
-
 ## Scripts
 
 - `npm run start`: Start the application in production mode
 - `npm run dev`: Start in development mode with hot reload
 - `npm run build`: Compile TypeScript files
 - `npm run package`: Create production installers
+- `npm run format`: Normalize code formatting
 - `npm run test`: Run Jest tests (to be implemented)
