@@ -84,7 +84,7 @@ export class AgentPilot {
 
   async init(): Promise<string | null> {
     // start the instance
-    const browser = await this.client.startBrowser();
+    const browser = await this.client.startBrowser({}, { timeoutInSeconds: 1000 });
     this.instance = browser;
     this.instanceID = browser.id;
     this.tools.push(computerTool(this.instance));
@@ -112,7 +112,7 @@ export class AgentPilot {
         model: this.model,
         tools: this.tools,
         prompt: userInput,
-        system: BROWSER_SYSTEM_PROMPT,
+        system: BROWSER_SYSTEM_PROMPT + '\n\n' + 'If you are given a specific URL, you must use the search bar at the very top of the page to navigate to that URL. Do not use the search bar in the middle of the page if you are given a specific URL.',
         onStep: step => {
           console.log('[AgentPilot Step]', step);
 
