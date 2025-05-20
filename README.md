@@ -43,19 +43,10 @@ npm install
 Create a new file named `.env` in the root directory and add the following configuration:
 
 ```ini
-# Scrapybara API Configuration
-SCRAPYBARA_API_KEY=scrapybara_key
-ANTHROPIC_API_KEY=anthropic_key # optional
-
-# Application Settings
-APP_ENV=development
-DEBUG=false
-
-# VM Instance Settings
-MAX_VM_INSTANCES=25
+APP_ENV=development # 'development' to output debug logs
 ```
 
-Adjust these values according to your needs and Scrapybara account settings.
+The rest of configurations (api keys, max vm instances, etc...) are configured through the settings page of the application. These are cached and only stored locally through electron-store. 
 
 ## Development
 
