@@ -17,6 +17,7 @@ const settingsStore = new Store({
     scrapybaraKey: '',
     anthropicKey: '',
     openaiKey: '',
+    maxVmInstances: 25,
   },
 });
 
@@ -233,6 +234,13 @@ class AgentPilotApp {
       const settings = settingsStore.store;
       if (!settings.scrapybaraKey) {
         this.sendToManager('error', 'Scrapybara API key is required. Please set it in Settings.');
+        return;
+      }
+
+      // Check if we've reached the max VM instances limit
+      const maxInstances = settings.maxVmInstances || 25;
+      if (this.vmWindows.length >= maxInstances) {
+        this.sendToManager('error', `Cannot create more VM instances. Maximum limit of ${maxInstances} reached.`);
         return;
       }
 
