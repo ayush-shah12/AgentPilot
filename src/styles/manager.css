@@ -151,3 +151,49 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Error display styles */
+.error-display {
+  background-color: var(--danger-color);
+  color: white;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow);
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-content span {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.error-content .btn-icon {
+  color: white;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.error-content .btn-icon:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

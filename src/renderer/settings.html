@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="../styles/settings.css" />
+  </head>
+  <body>
+    <div class="settings-container">
+      <header class="settings-header">
+        <h1>Settings</h1>
+        <button id="close-settings" class="btn btn-icon" title="Close">✕</button>
+      </header>
+
+      <main class="settings-content">
+        <form id="settings-form" class="settings-form">
+          <div class="form-group">
+            <div class="form-field">
+              <label for="scrapybara-key">
+                Scrapybara API Key
+                <span class="required">*</span>
+              </label>
+              <input
+                type="password"
+                id="scrapybara-key"
+                name="scrapybara-key"
+                class="input-field"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="anthropic-key">
+                Anthropic API Key
+                <span class="optional">(Optional)</span>
+              </label>
+              <input
+                type="password"
+                id="anthropic-key"
+                name="anthropic-key"
+                class="input-field"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="openai-key">
+                OpenAI API Key
+                <span class="optional">(Optional)</span>
+              </label>
+              <input
+                type="password"
+                id="openai-key"
+                name="openai-key"
+                class="input-field"
+              />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="clear-settings" class="btn btn-danger">Clear Settings</button>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script>
+      try {
+        require('@electron/remote');
+        const settingsPath = '../../dist/renderer/settings.js';
+        require(settingsPath);
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    </script>
+  </body>
+</html> 

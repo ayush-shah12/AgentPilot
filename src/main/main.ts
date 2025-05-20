@@ -6,8 +6,19 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 
 import { AgentPilot } from '../api/agentpilot';
 
+import Store from 'electron-store';
 import { VMInfo } from '../shared/constants';
 import { debug, isDev } from '../shared/utils';
+
+// Initialize settings store
+const settingsStore = new Store({
+  name: 'settings',
+  defaults: {
+    scrapybaraKey: '',
+    anthropicKey: '',
+    openaiKey: '',
+  },
+});
 
 interface VMWindow {
   /**
@@ -41,6 +52,7 @@ interface VMWindow {
  */
 class AgentPilotApp {
   private managerWindow: BrowserWindow | null = null;
+  private settingsWindow: BrowserWindow | null = null;
 
   private vmWindows: VMWindow[] = [];
 
@@ -167,6 +179,49 @@ class AgentPilotApp {
   }
 
   /*
+   * Creates and configures the settings window
+   * Shows existing window if already created
+   */
+  private createSettingsWindow() {
+    debug.log('Creating settings window...');
+    if (this.settingsWindow) {
+      debug.log('Settings window exists, showing it...');
+      this.settingsWindow.show();
+      return;
+    }
+
+    this.settingsWindow = new BrowserWindow({
+      width: 600,
+      height: 500,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        defaultEncoding: 'utf8',
+        webSecurity: false,
+        spellcheck: false,
+      },
+      frame: false,
+      autoHideMenuBar: true,
+      icon: path.join(__dirname, '..', '..', 'src', 'renderer', 'assets', 'icon.png'),
+    });
+
+    const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'settings.html');
+    debug.log('Loading settings HTML from:', htmlPath);
+    this.settingsWindow.loadFile(htmlPath);
+
+    require('@electron/remote/main').enable(this.settingsWindow.webContents);
+
+    if (isDev) {
+      this.settingsWindow.webContents.openDevTools();
+    }
+
+    this.settingsWindow.on('close', () => {
+      debug.log('Settings window closing...');
+      this.settingsWindow = null;
+    });
+  }
+
+  /*
    * Creates a new VM instance with the specified name
    * Initializes AgentPilot, opens window, and establishes communication
    */
@@ -174,6 +229,12 @@ class AgentPilotApp {
     try {
       debug.log('Creating VM instance with name:', name);
       debug.log('Using model configuration:', modelConfig);
+
+      const settings = settingsStore.store;
+      if (!settings.scrapybaraKey) {
+        this.sendToManager('error', 'Scrapybara API key is required. Please set it in Settings.');
+        return;
+      }
 
       const vmWindow = new BrowserWindow({
         width: 800,
@@ -183,6 +244,7 @@ class AgentPilotApp {
           contextIsolation: false,
         },
         autoHideMenuBar: true,
+        title: name
       });
 
       const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'vm-instance.html');
@@ -191,7 +253,11 @@ class AgentPilotApp {
 
       require('@electron/remote/main').enable(vmWindow.webContents);
 
-      const pilot = new AgentPilot(modelConfig);
+      const pilot = new AgentPilot(modelConfig, {
+        scrapybaraKey: settings.scrapybaraKey,
+        anthropicKey: settings.anthropicKey,
+        openaiKey: settings.openaiKey,
+      });
 
       // Set up the onStep callback to relay step information to the VM UI
       pilot.setOnStep(step => {
@@ -307,6 +373,12 @@ class AgentPilotApp {
       }
     });
 
+    // open settings window
+    ipcMain.on('open-settings-window', () => {
+      debug.log('Received open-settings-window event');
+      this.createSettingsWindow();
+    });
+
     // handle vm commands (stop, pause, resume, prompt)
     ipcMain.on('vm-command', async (_, { vmId, command, data }) => {
       debug.log('Received vm-command:', { vmId, command, data });
@@ -341,6 +413,24 @@ class AgentPilotApp {
             break;
         }
       }
+    });
+
+    // Get settings
+    ipcMain.handle('get-settings', () => {
+      return settingsStore.store;
+    });
+
+    // Save settings
+    ipcMain.handle('save-settings', (_, settings) => {
+      settingsStore.store = settings;
+      return true;
+    });
+
+    // Clear settings
+    ipcMain.handle('clear-settings', () => {
+      debug.log('Clearing settings...');
+      settingsStore.clear();
+      return true;
     });
   }
 

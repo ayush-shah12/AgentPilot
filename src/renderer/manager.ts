@@ -16,6 +16,9 @@ class ManagerWindow {
     instanceCount: HTMLElement;
     connectionStatus: HTMLElement;
     apiVersion: HTMLElement;
+    errorDisplay: HTMLElement;
+    errorMessage: HTMLElement;
+    errorClose: HTMLElement;
   };
 
   /**
@@ -32,6 +35,9 @@ class ManagerWindow {
       instanceCount: document.getElementById('instance-count')!,
       connectionStatus: document.getElementById('connection-status')!,
       apiVersion: document.getElementById('api-version')!,
+      errorDisplay: document.getElementById('error-display')!,
+      errorMessage: document.getElementById('error-message')!,
+      errorClose: document.getElementById('error-close')!,
     };
 
     this.initializeEventListeners();
@@ -50,6 +56,15 @@ class ManagerWindow {
     this.elements.modelProvider.addEventListener('change', () => {
       this.updateModelOptions();
     });
+
+    // settings button click handler
+    const settingsButton = document.getElementById('settings-button');
+    if (settingsButton) {
+      settingsButton.addEventListener('click', () => {
+        debug.log('Settings button clicked');
+        ipcRenderer.send('open-settings-window');
+      });
+    }
 
     this.elements.createButton.addEventListener('click', () => {
       debug.log('Create button clicked!');
@@ -89,6 +104,16 @@ class ManagerWindow {
     ipcRenderer.on('vm-status-update', (_, data: { vmId: string; status: string }) => {
       debug.log('Received VM status update:', data);
       this.updateVMStatus(data.vmId, data.status);
+    });
+
+    // Error display close button
+    this.elements.errorClose.addEventListener('click', () => {
+      this.hideError();
+    });
+
+    // Error message from main process
+    ipcRenderer.on('error', (_, message: string) => {
+      this.showError(message);
     });
 
     // Initialize model options based on default provider
@@ -213,11 +238,19 @@ class ManagerWindow {
   }
 
   /**
-   * Shows an error message
-   * @param message - The message to show
+   * Shows an error message in the error display
+   * @param message - The error message to display
    */
   private showError(message: string) {
-    alert(message);
+    this.elements.errorMessage.textContent = message;
+    this.elements.errorDisplay.style.display = 'block';
+  }
+
+  /**
+   * Hides the error display
+   */
+  private hideError() {
+    this.elements.errorDisplay.style.display = 'none';
   }
 }
 

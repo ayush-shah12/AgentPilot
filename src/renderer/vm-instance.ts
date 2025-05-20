@@ -85,6 +85,9 @@ class VMInstanceWindow {
         this.elements.vmName.textContent = data.name;
       }
 
+      // Update window title
+      document.title = data.name;
+
       this.setupStreamViewer(data.streamURL || '');
       this.updateStatus(data.status);
 
