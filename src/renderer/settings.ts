@@ -8,6 +8,7 @@ class SettingsWindow {
     scrapybaraKey: HTMLInputElement;
     anthropicKey: HTMLInputElement;
     openaiKey: HTMLInputElement;
+    maxVmInstances: HTMLInputElement;
     clearButton: HTMLElement;
   };
 
@@ -19,6 +20,7 @@ class SettingsWindow {
       scrapybaraKey: document.getElementById('scrapybara-key') as HTMLInputElement,
       anthropicKey: document.getElementById('anthropic-key') as HTMLInputElement,
       openaiKey: document.getElementById('openai-key') as HTMLInputElement,
+      maxVmInstances: document.getElementById('max-vm-instances') as HTMLInputElement,
       clearButton: document.getElementById('clear-settings')!,
     };
 
@@ -37,6 +39,7 @@ class SettingsWindow {
           this.elements.scrapybaraKey.value = '';
           this.elements.anthropicKey.value = '';
           this.elements.openaiKey.value = '';
+          this.elements.maxVmInstances.value = '25';
         } catch (error) {
           debug.error('Failed to clear settings:', error);
         }
@@ -56,6 +59,7 @@ class SettingsWindow {
         this.elements.scrapybaraKey.value = settings.scrapybaraKey || '';
         this.elements.anthropicKey.value = settings.anthropicKey || '';
         this.elements.openaiKey.value = settings.openaiKey || '';
+        this.elements.maxVmInstances.value = settings.maxVmInstances || '25';
       }
     } catch (error) {
       debug.error('Failed to load settings:', error);
@@ -68,6 +72,7 @@ class SettingsWindow {
         scrapybaraKey: this.elements.scrapybaraKey.value,
         anthropicKey: this.elements.anthropicKey.value,
         openaiKey: this.elements.openaiKey.value,
+        maxVmInstances: parseInt(this.elements.maxVmInstances.value) || 25,
       };
 
       await ipcRenderer.invoke('save-settings', settings);
