@@ -5,11 +5,16 @@ import { computerTool } from 'scrapybara/tools';
 
 import { chromium } from 'playwright';
 
-import dotenv from 'dotenv';
 
 export interface ModelConfig {
   provider: 'anthropic' | 'openai';
   name: string;
+}
+
+export interface APIConfig {
+  scrapybaraKey: string;
+  anthropicKey?: string;
+  openaiKey?: string;
 }
 
 export const AVAILABLE_MODELS = {
@@ -32,13 +37,18 @@ export class AgentPilot {
   private actInProgress: boolean = false; // mutex to prevent concurrent act() calls
   private onStep: ((step: any) => void) | null = null;
 
-  constructor(modelConfig?: ModelConfig) {
+  constructor(modelConfig?: ModelConfig, apiConfig?: APIConfig) {
     // initialize scrapybara client and anthropic model
-    dotenv.config();
+    if (!apiConfig?.scrapybaraKey) {
+      throw new Error('Scrapybara API key is required');
+    }
 
     this.client = new ScrapybaraClient({
-      apiKey: process.env.SCRAPYBARA_API_KEY,
+      apiKey: apiConfig.scrapybaraKey,
     });
+
+    const anthropicKey = apiConfig?.anthropicKey || undefined;
+    const openaiKey = apiConfig?.openaiKey || undefined;
 
     // Use the provided model configuration or default to Claude 3.7 Sonnet
     if (modelConfig) {
@@ -46,20 +56,20 @@ export class AgentPilot {
         this.model = {
           provider: 'anthropic',
           name: modelConfig.name,
-          apiKey: process.env.ANTHROPIC_API_KEY || '',
+          apiKey: anthropicKey,
         };
       } else if (modelConfig.provider === 'openai') {
         this.model = {
           provider: 'openai',
           name: modelConfig.name,
-          apiKey: process.env.OPENAI_API_KEY || '',
+          apiKey: openaiKey,
         };
       } else {
         // Default to Claude 3.7 Sonnet if invalid provider
         this.model = {
           provider: 'anthropic',
           name: 'claude-3-7-sonnet-20250219',
-          apiKey: process.env.ANTHROPIC_API_KEY || '',
+          apiKey: anthropicKey,
         };
       }
     } else {
@@ -67,7 +77,7 @@ export class AgentPilot {
       this.model = {
         provider: 'anthropic',
         name: 'claude-3-7-sonnet-20250219',
-        apiKey: process.env.ANTHROPIC_API_KEY || '',
+        apiKey: anthropicKey,
       };
     }
   }

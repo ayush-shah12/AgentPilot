@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VM Instance</title>
+    <title>Initializing...</title>
     <link rel="stylesheet" href="../styles/main.css" />
     <link rel="stylesheet" href="../styles/vm-instance.css" />
   </head>
   <body>
     <div class="app-container">
       <header class="app-header">
-        <h1>VM Instance Control</h1>
+        <h1><span id="vm-name">Initializing...</span></h1>
         <div class="header-controls">
           <button id="openManager" class="btn btn-secondary">Open Manager</button>
         </div>
@@ -23,7 +23,7 @@
             <div class="info-grid">
               <div class="info-item">
                 <label>Instance ID:</label>
-                <span id="vm-id">Loading...</span>
+                <span id="vm-id">Initializing...</span>
               </div>
               <div class="info-item">
                 <label>Status:</label>
@@ -65,6 +65,16 @@
           </section>
         </div>
 
+        <section class="card">
+          <h2>Quick Actions</h2>
+          <div class="action-buttons">
+            <button class="btn btn-primary" data-action="pause">Pause</button>
+            <button class="btn btn-warning" data-action="resume">Resume</button>
+            <button class="btn btn-danger" data-action="stop">Stop</button>
+          </div>
+        </section>
+
+
         <!-- these aren't parameters supported currently but they seem cool for now -->
         <div class="vm-status-panel">
           <section class="card">
@@ -86,15 +96,6 @@
                 <label>Network I/O</label>
                 <span id="network-io">0 KB/s</span>
               </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <h2>Quick Actions</h2>
-            <div class="action-buttons">
-              <button class="btn btn-primary" data-action="pause">Pause</button>
-              <button class="btn btn-warning" data-action="resume">Resume</button>
-              <button class="btn btn-danger" data-action="stop">Stop</button>
             </div>
           </section>
         </div>
