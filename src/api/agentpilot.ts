@@ -83,7 +83,7 @@ export class AgentPilot {
 
   async init(): Promise<string | null> {
     // start the instance
-    const browser = await this.client.startBrowser({}, { timeoutInSeconds: 1000 });
+    const browser = await this.client.startBrowser({timeoutHours: 0.25}, {});
     this.instance = browser;
     this.instanceID = browser.id;
     this.tools.push(computerTool(this.instance));
