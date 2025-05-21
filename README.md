@@ -1,15 +1,15 @@
 # AgentPilot
 
-A powerful Electron-based desktop app for orchestrating virtual machines running computer use agents — enabling real-time task dispatching, monitoring, and control. Built on top of Scrapybara VM instances.
+A powerful Electron-based desktop app for orchestrating virtual machines running computer use agents, enabling real-time task dispatching, monitoring, and control. Built on top of Scrapybara VM infrastructure.
 
-![image](https://github.com/user-attachments/assets/01d61637-e56c-478e-ac3f-93e8cebc9801)
+![image](https://github.com/user-attachments/assets/a9d0083d-36a7-4521-b404-7d28b241814f)
 
-In the image above, I prompted two different instances to simultaneously complete 2 different tasks. One was summarize the stock market for the day, the other was summarizing a research topic!
+*UI: Manager Tab (Center), VM Instance Tabs (Left, Right).*
 
 ## Features
 
 - **Orchestrate Multiple VM Instances**  
-  Launch, manage, and monitor multiple virtual machines running computer use agents effortlessly — all from a single desktop interface. Built to scale with the Batch Execution Mode (more on that below).
+  Launch, manage, and monitor multiple virtual machines running computer use agents effortlessly, all from a single desktop interface. Built to scale with the Batch Execution Mode (more on that below).
 
 - **Live Interactive Console**  
   Actively send new tasks, fine-tune behavior, or troubleshoot in real-time through a built-in terminal connected to each agent’s VM.
@@ -22,6 +22,10 @@ In the image above, I prompted two different instances to simultaneously complet
 
 - **Flexible Model & Provider Support**  
   Choose from multiple AI computer use models across providers like OpenAI and Anthropic — switch easily depending on the task.
+
+![2025-05-2019-52-19-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/cbfe163c-8586-4ad8-a765-21d1a595eb0c)
+
+*Spinning up 2 VMs using AgentPilot to conduct market analysis of 2 stocks in parallel, one agent researches NVDA, the other AMD.*
 
 ## Batch Execution
 
