@@ -247,7 +247,22 @@ class AgentPilotApp {
         return;
       }
 
+    
+      // demo purposes
+      // const layouts = [
+      //   // Top row
+      //   { x: 0,     y: 0, width: 640, height: 540 },    // [1]
+      //   { x: 640,   y: 0, width: 640, height: 540 },    // [2]
+      //   { x: 1280,  y: 0, width: 640, height: 540 },    // [3]
+      
+      //   // Bottom row
+      //   { x: 0,     y: 540, width: 960, height: 540 },  // [4]
+      //   { x: 960,   y: 540, width: 960, height: 540 },  // [5]
+      // ];
+      
+
       const vmWindow = new BrowserWindow({
+        // ...layouts[this.vmWindows.length],  // demo purposes
         width: 800,
         height: 600,
         webPreferences: {
@@ -280,12 +295,6 @@ class AgentPilotApp {
         }
       });
 
-      const streamURL = await pilot.init();
-
-      if (!streamURL) {
-        throw new Error('Failed to get stream URL');
-      }
-
       const vmId = uuidv4();
 
       const vmInstance: VMWindow = {
@@ -302,6 +311,13 @@ class AgentPilotApp {
       };
 
       this.vmWindows.push(vmInstance);
+
+
+      const streamURL = await pilot.init();
+
+      if (!streamURL) {
+        throw new Error('Failed to get stream URL');
+      }
 
       // update the instance count and vm list
       this.updateInstanceCount();

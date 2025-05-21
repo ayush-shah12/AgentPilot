@@ -25,6 +25,7 @@ class VMInstanceWindow {
     networkIO: HTMLElement;
     openManager: HTMLElement;
     streamViewer: HTMLIFrameElement;
+    streamOverlay: HTMLElement;
   };
 
   /**
@@ -44,6 +45,7 @@ class VMInstanceWindow {
       networkIO: document.getElementById('network-io')!,
       openManager: document.getElementById('openManager')!,
       streamViewer: document.getElementById('stream-viewer') as HTMLIFrameElement,
+      streamOverlay: document.getElementById('stream-overlay')!,
     };
 
     this.initializeEventListeners();
@@ -56,14 +58,35 @@ class VMInstanceWindow {
    */
   private setupStreamViewer(streamURL: string) {
     try {
+      // Show loading state
+      this.elements.streamViewer.style.display = 'none';
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'stream-loading';
+      loadingDiv.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing stream viewer...</div>
+      `;
+      this.elements.streamViewer.parentElement?.appendChild(loadingDiv);
+
       this.elements.streamViewer.src = streamURL;
 
       this.elements.streamViewer.onload = () => {
         debug.log('noVNC viewer loaded successfully');
+        // Hide loading and show stream
+        loadingDiv.remove();
+        this.elements.streamViewer.style.display = 'block';
+        
+        setTimeout(() => {
+          // scroll (for demo purposes only)
+          this.elements.streamViewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 1000);
       };
 
       this.elements.streamViewer.onerror = error => {
         debug.error('Stream viewer error:', error);
+        loadingDiv.innerHTML = `
+          <div class="loading-error">❌ Failed to load stream viewer</div>
+        `;
       };
     } catch (error) {
       debug.error('Failed to setup stream viewer:', error);
@@ -244,11 +267,19 @@ class VMInstanceWindow {
     this.elements.memoryUsage.style.width = `${stats.memory}%`;
     this.elements.memoryUsage.textContent = `${stats.memory}%`;
 
-    this.elements.networkIO.textContent = stats.networkIO;
+    this.elements.networkIO.textContent = `${stats.networkIO}`;
   }
 
   /**
-   * Appends a message to the console
+   * Truncates a message to a maximum length
+   */
+  private truncateMessage(message: string, maxLength: number = 100): string {
+    if (message.length <= maxLength) return message;
+    return message.substring(0, maxLength) + '...';
+  }
+
+  /**
+   * Appends a message to the console (and overlay)
    * @param message - The message to append
    * @param type - The type of message
    */
@@ -256,10 +287,10 @@ class VMInstanceWindow {
     message: string,
     type: 'command' | 'system' | 'agent' | 'agent-final' | 'error'
   ) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `console-message ${type}`;
-
-    // Add icons or prefixes to each line based on type
+    // Add to console with icons/prefixes
+    const consoleElement = document.createElement('div');
+    consoleElement.className = `console-line ${type}`;
+    
     let prefix = '';
     switch (type) {
       case 'system':
@@ -278,10 +309,23 @@ class VMInstanceWindow {
         prefix = '[ERROR] ❌ ';
         break;
     }
-
-    messageElement.textContent = prefix + message;
-    this.elements.consoleOutput.appendChild(messageElement);
+    
+    consoleElement.textContent = prefix + message;
+    this.elements.consoleOutput.appendChild(consoleElement);
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
+
+    const overlayElement = document.createElement('div');
+    overlayElement.className = `overlay-message ${type}`;
+    overlayElement.textContent = prefix + this.truncateMessage(message);
+
+    if (message.includes('Ready for next command') || message.includes('Command processing in progress')) {
+    }
+    else{
+      this.elements.streamOverlay.appendChild(overlayElement);
+      setTimeout(() => {
+        overlayElement.remove();
+      }, 5000);
+    }
   }
 
   /**

@@ -1,0 +1,71 @@
+.stream-viewer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.stream-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.overlay-message {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  max-width: 80%;
+  animation: fadeInOut 5s ease-in-out;
+  text-align: center;
+  font-size: 14px;
+}
+
+.overlay-message.system {
+  border-left: 4px solid #4CAF50;
+}
+
+.overlay-message.command {
+  border-left: 4px solid #2196F3;
+}
+
+.overlay-message.agent {
+  border-left: 4px solid #9C27B0;
+}
+
+.overlay-message.agent-final {
+  border-left: 4px solid #FF9800;
+}
+
+.overlay-message.error {
+  border-left: 4px solid #F44336;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+} 
