@@ -243,23 +243,24 @@ class AgentPilotApp {
       // Check if we've reached the max VM instances limit
       const maxInstances = settings.maxVmInstances || 25;
       if (this.vmWindows.length >= maxInstances) {
-        this.sendToManager('error', `Cannot create more VM instances. Maximum limit of ${maxInstances} reached.`);
+        this.sendToManager(
+          'error',
+          `Cannot create more VM instances. Maximum limit of ${maxInstances} reached.`
+        );
         return;
       }
 
-    
       // demo purposes
       // const layouts = [
       //   // Top row
       //   { x: 0,     y: 0, width: 640, height: 540 },    // [1]
       //   { x: 640,   y: 0, width: 640, height: 540 },    // [2]
       //   { x: 1280,  y: 0, width: 640, height: 540 },    // [3]
-      
+
       //   // Bottom row
       //   { x: 0,     y: 540, width: 960, height: 540 },  // [4]
       //   { x: 960,   y: 540, width: 960, height: 540 },  // [5]
       // ];
-      
 
       const vmWindow = new BrowserWindow({
         // ...layouts[this.vmWindows.length],  // demo purposes
@@ -270,7 +271,7 @@ class AgentPilotApp {
           contextIsolation: false,
         },
         autoHideMenuBar: true,
-        title: name
+        title: name,
       });
 
       const htmlPath = path.join(__dirname, '..', '..', 'src', 'renderer', 'vm-instance.html');
@@ -311,7 +312,6 @@ class AgentPilotApp {
       };
 
       this.vmWindows.push(vmInstance);
-
 
       const streamURL = await pilot.init();
 
@@ -395,8 +395,10 @@ class AgentPilotApp {
     // create a new VM instance
     ipcMain.on('request-create-vm', (_, data) => {
       const vmName = typeof data === 'object' && data.name ? data.name : String(data);
-      const modelConfig = typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
-      const initialPrompt = typeof data === 'object' && data.initialPrompt ? data.initialPrompt : undefined;
+      const modelConfig =
+        typeof data === 'object' && data.modelConfig ? data.modelConfig : undefined;
+      const initialPrompt =
+        typeof data === 'object' && data.initialPrompt ? data.initialPrompt : undefined;
       this.createVMInstance(vmName, modelConfig, initialPrompt);
     });
 

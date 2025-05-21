@@ -235,7 +235,9 @@
   max-height: 1000px;
   overflow: hidden;
   padding: 1rem;
-  transition: max-height 0.3s ease, padding 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    padding 0.3s ease;
 }
 
 .card.collapsible.collapsed .card-content {

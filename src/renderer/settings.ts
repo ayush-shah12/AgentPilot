@@ -34,19 +34,18 @@ class SettingsWindow {
     });
 
     this.elements.clearButton.addEventListener('click', async () => {
-        try {
-          await ipcRenderer.invoke('clear-settings');
-          this.elements.scrapybaraKey.value = '';
-          this.elements.anthropicKey.value = '';
-          this.elements.openaiKey.value = '';
-          this.elements.maxVmInstances.value = '25';
-        } catch (error) {
-          debug.error('Failed to clear settings:', error);
-        }
+      try {
+        await ipcRenderer.invoke('clear-settings');
+        this.elements.scrapybaraKey.value = '';
+        this.elements.anthropicKey.value = '';
+        this.elements.openaiKey.value = '';
+        this.elements.maxVmInstances.value = '25';
+      } catch (error) {
+        debug.error('Failed to clear settings:', error);
       }
-    );
+    });
 
-    this.elements.settingsForm.addEventListener('submit', (e) => {
+    this.elements.settingsForm.addEventListener('submit', e => {
       e.preventDefault();
       this.saveSettings();
     });
@@ -83,4 +82,4 @@ class SettingsWindow {
   }
 }
 
-new SettingsWindow(); 
+new SettingsWindow();

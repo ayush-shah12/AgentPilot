@@ -75,7 +75,7 @@ class VMInstanceWindow {
         // Hide loading and show stream
         loadingDiv.remove();
         this.elements.streamViewer.style.display = 'block';
-        
+
         setTimeout(() => {
           // scroll (for demo purposes only)
           this.elements.streamViewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -290,7 +290,7 @@ class VMInstanceWindow {
     // Add to console with icons/prefixes
     const consoleElement = document.createElement('div');
     consoleElement.className = `console-line ${type}`;
-    
+
     let prefix = '';
     switch (type) {
       case 'system':
@@ -309,7 +309,7 @@ class VMInstanceWindow {
         prefix = '[ERROR] ❌ ';
         break;
     }
-    
+
     consoleElement.textContent = prefix + message;
     this.elements.consoleOutput.appendChild(consoleElement);
     this.elements.consoleOutput.scrollTop = this.elements.consoleOutput.scrollHeight;
@@ -318,9 +318,11 @@ class VMInstanceWindow {
     overlayElement.className = `overlay-message ${type}`;
     overlayElement.textContent = prefix + this.truncateMessage(message);
 
-    if (message.includes('Ready for next command') || message.includes('Command processing in progress')) {
-    }
-    else{
+    if (
+      message.includes('Ready for next command') ||
+      message.includes('Command processing in progress')
+    ) {
+    } else {
       this.elements.streamOverlay.appendChild(overlayElement);
       setTimeout(() => {
         overlayElement.remove();

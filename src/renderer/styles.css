@@ -32,23 +32,23 @@
 }
 
 .overlay-message.system {
-  border-left: 4px solid #4CAF50;
+  border-left: 4px solid #4caf50;
 }
 
 .overlay-message.command {
-  border-left: 4px solid #2196F3;
+  border-left: 4px solid #2196f3;
 }
 
 .overlay-message.agent {
-  border-left: 4px solid #9C27B0;
+  border-left: 4px solid #9c27b0;
 }
 
 .overlay-message.agent-final {
-  border-left: 4px solid #FF9800;
+  border-left: 4px solid #ff9800;
 }
 
 .overlay-message.error {
-  border-left: 4px solid #F44336;
+  border-left: 4px solid #f44336;
 }
 
 @keyframes fadeInOut {
@@ -68,4 +68,4 @@
     opacity: 0;
     transform: translateY(-20px);
   }
-} 
+}
